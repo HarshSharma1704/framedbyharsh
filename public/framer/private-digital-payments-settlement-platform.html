@@ -911,6 +911,11 @@
     projectsSection?.style.setProperty('display', 'none', 'important');
     bottomMedia?.style.setProperty('display', 'none', 'important');
 
+    const headingText = heading?.querySelector('h1, h2, h3, p, .framer-text');
+    if (headingText && headingText.textContent?.trim() === 'Digital Payments & Settlement Platform') {
+      headingText.textContent = 'Digital Payments & Settlement Mobile Application';
+    }
+
     if (article && heading && !document.querySelector('.digital-payments-video-card')) {
       const card = document.createElement('div');
       card.className = 'digital-payments-video-card';
@@ -923,7 +928,7 @@
       const caseStudy = document.createElement('section');
       caseStudy.className = 'digital-payments-case';
       caseStudy.innerHTML = `
-        <p><strong>Digital Payments & Settlement Platform</strong> was a confidential fintech UX project for a multi-category payment product. The work focused on making <strong>credit-card payments, payment links, invoices, KYC, transaction tracking and settlements</strong> feel clear, reliable and easier to act on.</p>
+        <p><strong>Digital Payments & Settlement Mobile Application</strong> was a confidential fintech UX project for a multi-category payment product. The work focused on making <strong>credit-card payments, payment links, invoices, KYC, transaction tracking and settlements</strong> feel clear, reliable and easier to act on across a mobile-first experience.</p>
         <div class="digital-payments-case__grid">
           <div class="digital-payments-case__point"><span>Role</span><strong>UX architecture and wireframing</strong> for complex financial journeys across web and mobile.</div>
           <div class="digital-payments-case__point"><span>Focus</span><strong>Trust, review, recovery and status visibility</strong> across payments, collections and settlements.</div>
