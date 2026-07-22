@@ -6,6 +6,7 @@ body,
   height: 100%;
   min-height: 100%;
   margin: 0;
+  overflow: hidden;
   background: #050505;
 }
 
@@ -19,7 +20,6 @@ body,
 
 .framer-frame--locked {
   filter: blur(16px) brightness(0.35);
-  transform: scale(1.01);
   pointer-events: none;
   user-select: none;
 }

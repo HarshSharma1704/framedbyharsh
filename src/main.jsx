@@ -33,13 +33,48 @@ function isPrivateProjectPath() {
   return path === PRIVATE_PROJECT_PATH || path.startsWith('/private-projects/');
 }
 
+function tuneFramerFrame(frame, shouldFixPrivateLayout, shouldScrollToContact) {
+  const frameDocument = frame.contentDocument;
+
+  if (!frameDocument) {
+    return;
+  }
+
+  if (shouldFixPrivateLayout) {
+    const root = frameDocument.querySelector('[data-framer-root]');
+    const layout = frameDocument.querySelector('.framer-wdnrd6');
+    const main = frameDocument.querySelector('main');
+
+    root?.style.setProperty('width', '100%', 'important');
+    root?.style.setProperty('max-width', 'none', 'important');
+    layout?.style.setProperty('width', '100%', 'important');
+    layout?.style.setProperty('max-width', 'none', 'important');
+    main?.style.setProperty('width', 'auto', 'important');
+    main?.style.setProperty('max-width', 'none', 'important');
+    main?.style.setProperty('flex', '1 1 auto', 'important');
+  }
+
+  if (shouldScrollToContact) {
+    window.requestAnimationFrame(() => {
+      const contactSection = [...frameDocument.querySelectorAll('section')].find((section) => {
+        return section.textContent?.includes("Let's Talk!");
+      });
+
+      contactSection?.scrollIntoView({ block: 'start' });
+    });
+  }
+}
+
 function App() {
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
   const [hasPrivateAccess, setHasPrivateAccess] = React.useState(() => {
     return window.localStorage.getItem(PRIVATE_PROJECT_ACCESS_KEY) === 'granted';
   });
+  const path = currentPath();
   const privateProjectLocked = isPrivateProjectPath() && !hasPrivateAccess;
+  const privateProjectPage = isPrivateProjectPath();
+  const contactPage = path === '/contact';
 
   function unlockPrivateProject(event) {
     event.preventDefault();
@@ -61,6 +96,7 @@ function App() {
         className={`framer-frame${privateProjectLocked ? ' framer-frame--locked' : ''}`}
         title="Framed by Harsh clone"
         src={currentFrame()}
+        onLoad={(event) => tuneFramerFrame(event.currentTarget, privateProjectPage, contactPage)}
       />
 
       {privateProjectLocked ? (
