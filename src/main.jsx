@@ -5,6 +5,8 @@ import './styles.css';
 const PRIVATE_PROJECT_PATH = '/private-projects/digital-payments-settlement-platform';
 const PRIVATE_PROJECT_PASSWORD = 'accinternal';
 const PRIVATE_PROJECT_ACCESS_KEY = 'framed-private-project-access';
+const DIGITAL_PAYMENTS_VIDEO = '/assets/digital-payments-mockup.mp4';
+const DIGITAL_PAYMENTS_VIDEO_FALLBACK = 'https://framerusercontent.com/assets/STpgrtJgdEXcsv1nWF8ULluFG2s.mp4';
 
 const routes = new Map([
   ['/', '/framer/home.html'],
@@ -52,6 +54,59 @@ function tuneFramerFrame(frame, shouldFixPrivateLayout, shouldScrollToContact) {
     main?.style.setProperty('width', 'auto', 'important');
     main?.style.setProperty('max-width', 'none', 'important');
     main?.style.setProperty('flex', '1 1 auto', 'important');
+
+    if (!frameDocument.getElementById('digital-payments-video-style')) {
+      const style = frameDocument.createElement('style');
+      style.id = 'digital-payments-video-style';
+      style.textContent = `
+        .digital-payments-video-card {
+          width: 100%;
+          aspect-ratio: 16 / 9;
+          border-radius: 12px;
+          overflow: hidden;
+          background: #1a1a1a;
+          position: relative;
+        }
+
+        .digital-payments-video-card video {
+          width: 100%;
+          height: 100%;
+          display: block;
+          object-fit: cover;
+        }
+      `;
+      frameDocument.head.append(style);
+    }
+
+    if (!frameDocument.querySelector('.digital-payments-video-card')) {
+      const article = frameDocument.querySelector('[data-framer-name="Heading + Paragraph"]');
+      const heading = article?.firstElementChild;
+
+      if (article && heading) {
+        const card = frameDocument.createElement('div');
+        card.className = 'digital-payments-video-card';
+
+        const video = frameDocument.createElement('video');
+        video.autoplay = true;
+        video.muted = true;
+        video.loop = true;
+        video.playsInline = true;
+        video.preload = 'metadata';
+        video.setAttribute('aria-label', 'Digital payments project mockup');
+
+        const localSource = frameDocument.createElement('source');
+        localSource.src = DIGITAL_PAYMENTS_VIDEO;
+        localSource.type = 'video/mp4';
+
+        const fallbackSource = frameDocument.createElement('source');
+        fallbackSource.src = DIGITAL_PAYMENTS_VIDEO_FALLBACK;
+        fallbackSource.type = 'video/mp4';
+
+        video.append(localSource, fallbackSource);
+        card.append(video);
+        heading.insertAdjacentElement('afterend', card);
+      }
+    }
   }
 
   if (shouldScrollToContact) {
@@ -63,6 +118,25 @@ function tuneFramerFrame(frame, shouldFixPrivateLayout, shouldScrollToContact) {
       contactSection?.scrollIntoView({ block: 'start' });
     });
   }
+}
+
+function tuneFramerFrameWhenReady(frame, shouldFixPrivateLayout, shouldScrollToContact) {
+  let attempts = 0;
+
+  function tune() {
+    attempts += 1;
+    tuneFramerFrame(frame, shouldFixPrivateLayout, shouldScrollToContact);
+
+    const frameDocument = frame.contentDocument;
+    const privateReady = !shouldFixPrivateLayout || frameDocument?.querySelector('.digital-payments-video-card');
+    const contactReady = !shouldScrollToContact || frameDocument?.defaultView?.scrollY > 0;
+
+    if ((!privateReady || !contactReady) && attempts < 20) {
+      window.setTimeout(tune, 150);
+    }
+  }
+
+  tune();
 }
 
 function App() {
@@ -96,7 +170,7 @@ function App() {
         className={`framer-frame${privateProjectLocked ? ' framer-frame--locked' : ''}`}
         title="Framed by Harsh clone"
         src={currentFrame()}
-        onLoad={(event) => tuneFramerFrame(event.currentTarget, privateProjectPage, contactPage)}
+        onLoad={(event) => tuneFramerFrameWhenReady(event.currentTarget, privateProjectPage, contactPage)}
       />
 
       {privateProjectLocked ? (
