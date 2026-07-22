@@ -700,5 +700,29 @@
 	<!-- Start of bodyEnd -->
     
     <!-- End of bodyEnd -->
+<!-- Private project thumbnail override -->
+<script>
+(() => {
+  function updatePrivateProjectThumbnail() {
+    const privateCard = document.querySelector('a[href="/private-projects/digital-payments-settlement-platform"]');
+    const image = privateCard?.querySelector('img');
+
+    if (!image) {
+      return;
+    }
+
+    image.src = '/assets/private-projects-thumbnail.png';
+    image.srcset = '/assets/private-projects-thumbnail.png';
+    image.alt = 'Private Projects';
+  }
+
+  window.addEventListener('load', () => {
+    updatePrivateProjectThumbnail();
+    window.setTimeout(updatePrivateProjectThumbnail, 1500);
+    window.setTimeout(updatePrivateProjectThumbnail, 3000);
+  });
+})();
+</script>
+<!-- End private project thumbnail override -->
 </body>
 </html>

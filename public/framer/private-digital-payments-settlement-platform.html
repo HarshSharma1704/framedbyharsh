@@ -716,6 +716,81 @@
     display: block;
     object-fit: cover;
   }
+  .digital-payments-case {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    width: 100%;
+    color: #999;
+    font-family: Inter, "Inter Placeholder", sans-serif;
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 1.7;
+  }
+  .digital-payments-case p {
+    margin: 0;
+  }
+  .digital-payments-case strong {
+    color: #f5f5f5;
+    font-weight: 600;
+  }
+  .digital-payments-case__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .digital-payments-case__point {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    background: rgba(26, 26, 26, 0.56);
+    padding: 16px;
+  }
+  .digital-payments-case__point span {
+    display: block;
+    margin-bottom: 6px;
+    color: #4ce6a6;
+    font-size: 12px;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+  .digital-payments-case__details {
+    display: none;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .digital-payments-case.is-expanded .digital-payments-case__details {
+    display: flex;
+  }
+  .digital-payments-case__button {
+    align-self: flex-start;
+    min-height: 44px;
+    margin-top: 2px;
+    padding: 0 18px;
+    border: 1px solid #4ce6a6;
+    border-radius: 12px;
+    background: #4ce6a6;
+    color: #050505;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    cursor: pointer;
+  }
+  .digital-payments-case__button:hover,
+  .digital-payments-case__button:focus-visible,
+  .digital-payments-case.is-expanded .digital-payments-case__button {
+    background: #050505;
+    color: #4ce6a6;
+    outline: none;
+  }
+  @media (max-width: 809.98px) {
+    .digital-payments-case {
+      font-size: 15px;
+    }
+    .digital-payments-case__grid {
+      grid-template-columns: 1fr;
+    }
+  }
   body.digital-payments-locked [data-framer-root] {
     filter: blur(16px) brightness(0.35);
     pointer-events: none;
@@ -826,9 +901,13 @@
   function customizeProject() {
     const article = document.querySelector('[data-framer-name="Heading + Paragraph"]');
     const heading = article?.firstElementChild;
+    const generatedBody = document.querySelector('[data-framer-name="Heading + Paragraph"] > .ssr-variant');
+    const infoBlock = document.querySelector('[data-framer-name="Heading + Paragraph"] > .framer-rykpwp');
     const projectsSection = document.querySelector('[data-framer-name="Projects Section"]');
     const bottomMedia = document.querySelector('[data-framer-name="Heading + Paragraph"] > .framer-1kf03ng');
 
+    generatedBody?.style.setProperty('display', 'none', 'important');
+    infoBlock?.style.setProperty('display', 'none', 'important');
     projectsSection?.style.setProperty('display', 'none', 'important');
     bottomMedia?.style.setProperty('display', 'none', 'important');
 
@@ -837,6 +916,38 @@
       card.className = 'digital-payments-video-card';
       card.innerHTML = '<video autoplay muted loop playsinline preload="metadata" aria-label="Digital payments project mockup"><source src="/assets/digital-payments-mockup.mp4" type="video/mp4"><source src="https://framerusercontent.com/assets/STpgrtJgdEXcsv1nWF8ULluFG2s.mp4" type="video/mp4"></video>';
       heading.insertAdjacentElement('afterend', card);
+    }
+
+    if (article && !document.querySelector('.digital-payments-case')) {
+      const videoCard = document.querySelector('.digital-payments-video-card') || heading;
+      const caseStudy = document.createElement('section');
+      caseStudy.className = 'digital-payments-case';
+      caseStudy.innerHTML = `
+        <p><strong>Digital Payments & Settlement Platform</strong> was a confidential fintech UX project for a multi-category payment product. The work focused on making <strong>credit-card payments, payment links, invoices, KYC, transaction tracking and settlements</strong> feel clear, reliable and easier to act on.</p>
+        <div class="digital-payments-case__grid">
+          <div class="digital-payments-case__point"><span>Role</span><strong>UX architecture and wireframing</strong> for complex financial journeys across web and mobile.</div>
+          <div class="digital-payments-case__point"><span>Focus</span><strong>Trust, review, recovery and status visibility</strong> across payments, collections and settlements.</div>
+          <div class="digital-payments-case__point"><span>Challenge</span>Keeping money movement simple while supporting <strong>verification, failures, delays, refunds and edge cases</strong>.</div>
+          <div class="digital-payments-case__point"><span>Outcome</span>A reusable product framework for <strong>consistent payment flows, transparent states and scalable modules</strong>.</div>
+        </div>
+        <div class="digital-payments-case__details" id="digital-payments-details">
+          <p>The experience was structured around user intent rather than internal product categories. Users needed to understand what they could pay, what details were required, what amount would be charged, and what would happen after authorization.</p>
+          <p>The payment flow moved through <strong>category selection, recipient details, payment review, card selection, authentication, confirmation and tracking</strong>. The review stage was treated as a trust moment, making recipient information, charges and final payable value visible before commitment.</p>
+          <p>For payment links and invoices, the design connected creation, sharing, payment status and settlement into one continuous journey. This helped professionals and small businesses see whether a request was created, opened, paid, processing, settled or expired.</p>
+          <p>KYC and verification were designed as guided steps with clear reasons, required information, account states and recovery paths. The goal was to reduce uncertainty without hiding the seriousness of financial compliance.</p>
+          <p>The strongest design work was in the system states: <strong>payment failed, deducted but pending, settlement delayed, refund initiated, KYC rejected and network interruption</strong>. Each state needed to explain what happened, whether money was affected, what comes next and where support fits.</p>
+          <p>The final framework gave product, visual design and engineering teams a clear foundation for building a serious fintech product that still felt approachable, structured and usable.</p>
+        </div>
+        <button class="digital-payments-case__button" type="button" aria-expanded="false" aria-controls="digital-payments-details">Expand case study</button>
+      `;
+      videoCard.insertAdjacentElement('afterend', caseStudy);
+
+      const button = caseStudy.querySelector('.digital-payments-case__button');
+      button.addEventListener('click', () => {
+        const expanded = caseStudy.classList.toggle('is-expanded');
+        button.setAttribute('aria-expanded', String(expanded));
+        button.textContent = expanded ? 'Collapse case study' : 'Expand case study';
+      });
     }
   }
 
