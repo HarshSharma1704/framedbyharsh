@@ -783,6 +783,10 @@
     color: #4ce6a6;
     outline: none;
   }
+  .digital-payments-customized > :not(:first-child):not(.digital-payments-video-card):not(.digital-payments-case),
+  .digital-payments-source-hidden {
+    display: none !important;
+  }
   @media (max-width: 809.98px) {
     .digital-payments-case {
       font-size: 15px;
@@ -906,10 +910,15 @@
     const projectsSection = document.querySelector('[data-framer-name="Projects Section"]');
     const bottomMedia = document.querySelector('[data-framer-name="Heading + Paragraph"] > .framer-1kf03ng');
 
+    article?.classList.add('digital-payments-customized');
     generatedBody?.style.setProperty('display', 'none', 'important');
+    generatedBody?.classList.add('digital-payments-source-hidden');
     infoBlock?.style.setProperty('display', 'none', 'important');
+    infoBlock?.classList.add('digital-payments-source-hidden');
     projectsSection?.style.setProperty('display', 'none', 'important');
+    projectsSection?.classList.add('digital-payments-source-hidden');
     bottomMedia?.style.setProperty('display', 'none', 'important');
+    bottomMedia?.classList.add('digital-payments-source-hidden');
 
     const headingText = heading?.querySelector('h1, h2, h3, p, .framer-text');
     if (headingText && headingText.textContent?.trim() === 'Digital Payments & Settlement Platform') {
