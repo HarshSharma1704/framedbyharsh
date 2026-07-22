@@ -35,7 +35,30 @@ function isPrivateProjectPath() {
   return path === PRIVATE_PROJECT_PATH || path.startsWith('/private-projects/');
 }
 
-function tuneFramerFrame(frame, shouldFixPrivateLayout, shouldScrollToContact) {
+function alignHomeTalkText(frameDocument) {
+  const introParagraph = [...frameDocument.querySelectorAll('p')].find((paragraph) => {
+    return paragraph.textContent?.includes('Bridging design and technology');
+  });
+  const talkText = [...frameDocument.querySelectorAll('p')].find((paragraph) => {
+    return paragraph.textContent?.includes("Let's Talk!");
+  });
+  const talkGraphic = talkText?.closest('svg');
+
+  if (!introParagraph || !talkGraphic) {
+    return false;
+  }
+
+  talkGraphic.style.setProperty('transform', 'none', 'important');
+
+  const introLeft = introParagraph.getBoundingClientRect().left;
+  const talkLeft = talkText.getBoundingClientRect().left;
+  const offset = introLeft - talkLeft;
+
+  talkGraphic.style.setProperty('transform', `translateX(${offset}px)`, 'important');
+  return true;
+}
+
+function tuneFramerFrame(frame, shouldFixPrivateLayout, shouldScrollToContact, shouldAlignHomeTalk) {
   const frameDocument = frame.contentDocument;
 
   if (!frameDocument) {
@@ -54,6 +77,12 @@ function tuneFramerFrame(frame, shouldFixPrivateLayout, shouldScrollToContact) {
     main?.style.setProperty('width', 'auto', 'important');
     main?.style.setProperty('max-width', 'none', 'important');
     main?.style.setProperty('flex', '1 1 auto', 'important');
+
+    const otherProjectsSection = frameDocument.querySelector('[data-framer-name="Projects Section"]');
+    const bottomMediaBlock = frameDocument.querySelector('[data-framer-name="Heading + Paragraph"] > .framer-1kf03ng');
+
+    otherProjectsSection?.style.setProperty('display', 'none', 'important');
+    bottomMediaBlock?.style.setProperty('display', 'none', 'important');
 
     if (!frameDocument.getElementById('digital-payments-video-style')) {
       const style = frameDocument.createElement('style');
@@ -118,25 +147,25 @@ function tuneFramerFrame(frame, shouldFixPrivateLayout, shouldScrollToContact) {
       contactSection?.scrollIntoView({ block: 'start' });
     });
   }
+
+  if (shouldAlignHomeTalk) {
+    alignHomeTalkText(frameDocument);
+  }
 }
 
-function tuneFramerFrameWhenReady(frame, shouldFixPrivateLayout, shouldScrollToContact) {
+function tuneFramerFrameWhenReady(frame, shouldFixPrivateLayout, shouldScrollToContact, shouldAlignHomeTalk) {
   let attempts = 0;
 
   function tune() {
     attempts += 1;
-    tuneFramerFrame(frame, shouldFixPrivateLayout, shouldScrollToContact);
+    tuneFramerFrame(frame, shouldFixPrivateLayout, shouldScrollToContact, shouldAlignHomeTalk);
 
-    const frameDocument = frame.contentDocument;
-    const privateReady = !shouldFixPrivateLayout || frameDocument?.querySelector('.digital-payments-video-card');
-    const contactReady = !shouldScrollToContact || frameDocument?.defaultView?.scrollY > 0;
-
-    if ((!privateReady || !contactReady) && attempts < 20) {
-      window.setTimeout(tune, 150);
+    if (attempts < 30) {
+      window.setTimeout(tune, 500);
     }
   }
 
-  tune();
+  window.setTimeout(tune, 1500);
 }
 
 function App() {
@@ -149,6 +178,7 @@ function App() {
   const privateProjectLocked = isPrivateProjectPath() && !hasPrivateAccess;
   const privateProjectPage = isPrivateProjectPath();
   const contactPage = path === '/contact';
+  const homePage = path === '/' || contactPage;
 
   function unlockPrivateProject(event) {
     event.preventDefault();
@@ -170,7 +200,7 @@ function App() {
         className={`framer-frame${privateProjectLocked ? ' framer-frame--locked' : ''}`}
         title="Framed by Harsh clone"
         src={currentFrame()}
-        onLoad={(event) => tuneFramerFrameWhenReady(event.currentTarget, privateProjectPage, contactPage)}
+        onLoad={(event) => tuneFramerFrameWhenReady(event.currentTarget, privateProjectPage, contactPage, homePage)}
       />
 
       {privateProjectLocked ? (
