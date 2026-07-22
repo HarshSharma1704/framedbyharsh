@@ -688,8 +688,105 @@
     
     <!-- End of bodyEnd -->
 <!-- Home local alignment -->
+<style>
+  .smooth-scroll-text {
+    color: rgb(82, 82, 82) !important;
+  }
+  .smooth-scroll-text .smooth-scroll-word {
+    color: rgb(var(--smooth-word-color, 82 82 82)) !important;
+    transition: color 80ms linear;
+    will-change: color;
+  }
+  .smooth-scroll-text .smooth-scroll-word.is-highlighted {
+    font-weight: 500;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .smooth-scroll-text .smooth-scroll-word {
+      transition: none;
+    }
+  }
+</style>
 <script>
 (() => {
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let smoothText = null;
+  let smoothWords = [];
+  let smoothTextTop = 0;
+  let smoothTextHeight = 1;
+  let ticking = false;
+
+  function setupSmoothScrollText() {
+    const paragraph = [...document.querySelectorAll('p')].find((item) => {
+      return item.textContent?.includes('Bridging design and technology');
+    });
+
+    if (!paragraph || paragraph.classList.contains('smooth-scroll-text')) {
+      return;
+    }
+
+    const text = paragraph.textContent.trim().replace(/\s+/g, ' ');
+    const fragment = document.createDocumentFragment();
+
+    text.split(' ').forEach((word, index, words) => {
+      const span = document.createElement('span');
+      span.className = 'smooth-scroll-word';
+      span.textContent = word;
+      fragment.append(span);
+
+      if (index < words.length - 1) {
+        fragment.append(document.createTextNode(' '));
+      }
+    });
+
+    paragraph.replaceChildren(fragment);
+    paragraph.classList.add('smooth-scroll-text');
+    smoothText = paragraph;
+    smoothWords = [...paragraph.querySelectorAll('.smooth-scroll-word')];
+    measureSmoothText();
+    updateSmoothText();
+  }
+
+  function measureSmoothText() {
+    if (!smoothText) {
+      return;
+    }
+
+    const rect = smoothText.getBoundingClientRect();
+    smoothTextTop = rect.top + window.scrollY;
+    smoothTextHeight = Math.max(rect.height, 1);
+  }
+
+  function updateSmoothText() {
+    ticking = false;
+
+    if (!smoothWords.length) {
+      return;
+    }
+
+    const start = smoothTextTop - window.innerHeight * 0.75;
+    const range = window.innerHeight * 0.72 + smoothTextHeight;
+    const progress = Math.min(Math.max((window.scrollY - start) / range, 0), 1);
+    const reveal = reducedMotion ? 1 : progress * (smoothWords.length + 8);
+
+    smoothWords.forEach((word, index) => {
+      const amount = Math.min(Math.max(reveal - index, 0), 1);
+      const eased = amount * amount * (3 - 2 * amount);
+      const value = Math.round(82 + (255 - 82) * eased);
+
+      word.style.setProperty('--smooth-word-color', `${value} ${value} ${value}`);
+      word.classList.toggle('is-highlighted', eased > 0.72);
+    });
+  }
+
+  function requestSmoothTextUpdate() {
+    if (ticking) {
+      return;
+    }
+
+    ticking = true;
+    window.requestAnimationFrame(updateSmoothText);
+  }
+
   function alignTalkText() {
     const intro = [...document.querySelectorAll('p')].find((paragraph) => paragraph.textContent?.includes('Bridging design and technology'));
     const talk = [...document.querySelectorAll('p')].find((paragraph) => paragraph.textContent?.includes("Let's Talk!"));
@@ -717,14 +814,22 @@
   }
 
   window.addEventListener('load', () => {
+    setupSmoothScrollText();
     alignTalkText();
     scrollToContact();
+    window.setTimeout(setupSmoothScrollText, 1500);
     window.setTimeout(alignTalkText, 1500);
     window.setTimeout(scrollToContact, 1500);
+    window.setTimeout(setupSmoothScrollText, 3000);
     window.setTimeout(alignTalkText, 3000);
     window.setTimeout(scrollToContact, 3000);
   });
-  window.addEventListener('resize', alignTalkText);
+  window.addEventListener('scroll', requestSmoothTextUpdate, { passive: true });
+  window.addEventListener('resize', () => {
+    measureSmoothText();
+    requestSmoothTextUpdate();
+    alignTalkText();
+  });
 })();
 </script>
 <!-- End home local alignment -->
