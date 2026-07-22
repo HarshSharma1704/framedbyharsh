@@ -687,5 +687,46 @@
 	<!-- Start of bodyEnd -->
     
     <!-- End of bodyEnd -->
+<!-- Home local alignment -->
+<script>
+(() => {
+  function alignTalkText() {
+    const intro = [...document.querySelectorAll('p')].find((paragraph) => paragraph.textContent?.includes('Bridging design and technology'));
+    const talk = [...document.querySelectorAll('p')].find((paragraph) => paragraph.textContent?.includes("Let's Talk!"));
+    const graphic = talk?.closest('svg');
+
+    if (!intro || !talk || !graphic) {
+      return;
+    }
+
+    graphic.style.setProperty('transform', 'none', 'important');
+    const offset = intro.getBoundingClientRect().left - talk.getBoundingClientRect().left;
+    graphic.style.setProperty('transform', `translateX(${offset}px)`, 'important');
+  }
+
+  function scrollToContact() {
+    if (window.location.pathname !== '/contact') {
+      return;
+    }
+
+    const contactSection = [...document.querySelectorAll('section')].find((section) => {
+      return section.textContent?.includes("Let's Talk!");
+    });
+
+    contactSection?.scrollIntoView({ block: 'start' });
+  }
+
+  window.addEventListener('load', () => {
+    alignTalkText();
+    scrollToContact();
+    window.setTimeout(alignTalkText, 1500);
+    window.setTimeout(scrollToContact, 1500);
+    window.setTimeout(alignTalkText, 3000);
+    window.setTimeout(scrollToContact, 3000);
+  });
+  window.addEventListener('resize', alignTalkText);
+})();
+</script>
+<!-- End home local alignment -->
 </body>
 </html>
