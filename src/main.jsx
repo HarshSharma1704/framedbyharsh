@@ -3,7 +3,26 @@ import { createRoot } from 'react-dom/client';
 import './styles.css';
 
 const PRIVATE_PROJECT_PATH = '/private-projects/digital-payments-settlement-platform';
-const PRIVATE_PROJECT_CASE_PATH = '/private-projects/digital-payments-settlement-platform/case-study';
+const PRIVATE_PROJECTS = [
+  {
+    id: 'digital-payments-settlement-platform',
+    indexPath: '/private-projects/digital-payments-settlement-platform',
+    casePath: '/private-projects/digital-payments-settlement-platform/case-study',
+    category: 'PRIVATE CASE STUDY',
+    title: 'Digital Payments & Settlement Platform',
+    thumbnail: '/assets/digital-payments-thumbnail.png',
+    alt: 'Digital Payments & Settlement Platform'
+  },
+  {
+    id: 'secure-network-access-management-platform',
+    indexPath: '/private-projects/secure-network-access-management-platform',
+    casePath: '/private-projects/secure-network-access-management-platform/case-study',
+    category: 'PRIVATE CASE STUDY',
+    title: 'Secure Network & Access Management Platform',
+    thumbnail: '/assets/private-projects-thumbnail.png',
+    alt: 'Secure Network & Access Management Platform'
+  }
+];
 const DIGITAL_PAYMENTS_VIDEO = '/assets/digital-payments-mockup.mp4';
 const DIGITAL_PAYMENTS_VIDEO_FALLBACK = 'https://framerusercontent.com/assets/STpgrtJgdEXcsv1nWF8ULluFG2s.mp4';
 
@@ -32,8 +51,16 @@ function isPrivateProjectPath() {
   return path === PRIVATE_PROJECT_PATH || path.startsWith('/private-projects/');
 }
 
-function isPrivateCaseStudyPath() {
-  return currentPath() === PRIVATE_PROJECT_CASE_PATH;
+function privateProjectById(projectId) {
+  return PRIVATE_PROJECTS.find((project) => project.id === projectId) || PRIVATE_PROJECTS[0];
+}
+
+function privateProjectByCasePath(path) {
+  return PRIVATE_PROJECTS.find((project) => project.casePath === path) || null;
+}
+
+function isPrivateCaseStudyPath(path = currentPath()) {
+  return Boolean(privateProjectByCasePath(path));
 }
 
 function alignHomeTalkText(frameDocument) {
@@ -166,19 +193,31 @@ function updatePrivateProjectThumbnail(frameDocument) {
   const privateCards = [...frameDocument.querySelectorAll('a.framer-q6VTF')].filter((card) => {
     const href = card.getAttribute('href') || '';
     const privatePath = card.getAttribute('data-private-case-path') || '';
-    return href.includes('/private-projects/digital-payments-settlement-platform')
-      || privatePath === PRIVATE_PROJECT_CASE_PATH;
+    return PRIVATE_PROJECTS.some((project) => {
+      return href.includes(project.indexPath)
+        || href.includes(project.casePath)
+        || privatePath === project.casePath
+        || card.getAttribute('data-private-project-id') === project.id;
+    });
   });
 
   for (const card of privateCards) {
+    const href = card.getAttribute('href') || '';
+    const privatePath = card.getAttribute('data-private-case-path') || '';
+    const project = PRIVATE_PROJECTS.find((candidate) => {
+      return href.includes(candidate.indexPath)
+        || href.includes(candidate.casePath)
+        || privatePath === candidate.casePath
+        || card.getAttribute('data-private-project-id') === candidate.id;
+    }) || PRIVATE_PROJECTS[0];
     const image = card.querySelector('img');
     if (!image) {
       continue;
     }
 
-    image.src = '/assets/digital-payments-thumbnail.png';
-    image.srcset = '/assets/digital-payments-thumbnail.png';
-    image.alt = 'Digital Payments & Settlement Platform';
+    image.src = project.thumbnail;
+    image.srcset = project.thumbnail;
+    image.alt = project.alt;
   }
 }
 
@@ -200,7 +239,7 @@ function ensurePrivateIndexBackButton(frameDocument) {
   button.className = 'local-private-back-button';
   button.href = '/projects';
   button.target = '_top';
-  button.innerHTML = '<span aria-hidden="true">←</span><span>Back to all projects</span>';
+  button.innerHTML = '<span aria-hidden="true">&larr;</span><span>Back to all projects</span>';
   host.insertBefore(button, section);
 }
 
@@ -216,41 +255,113 @@ function tunePrivateProjectsIndex(frameDocument, openPrivateCaseStudy) {
 
   const projectCards = [...frameDocument.querySelectorAll('a.framer-q6VTF')];
 
-  for (const card of projectCards) {
-    const href = card.getAttribute('href') || '';
+  projectCards.forEach((card, index) => {
     const wrapper = card.closest('.ssr-variant') || card.parentElement;
-    const isPrivateCard = href.includes('/private-projects/digital-payments-settlement-platform')
-      || card.getAttribute('data-private-case-path') === PRIVATE_PROJECT_CASE_PATH;
+    const project = PRIVATE_PROJECTS[index];
 
-    if (!isPrivateCard) {
+    if (!project) {
       wrapper?.style.setProperty('display', 'none', 'important');
-      continue;
+      return;
     }
 
     wrapper?.style.removeProperty('display');
+    wrapper?.style.removeProperty('visibility');
 
-    card.setAttribute('href', '#digital-payments-case-study');
-    card.setAttribute('data-private-case-path', PRIVATE_PROJECT_CASE_PATH);
+    card.setAttribute('href', `#${project.id}`);
+    card.setAttribute('data-private-project-id', project.id);
+    card.setAttribute('data-private-case-path', project.casePath);
 
     const category = card.querySelector('.framer-1qv04uv p');
     const title = card.querySelector('.framer-1hd1k8e h3');
 
     if (category) {
-      category.textContent = 'PRIVATE CASE STUDY';
+      category.textContent = project.category;
     }
 
     if (title) {
-      title.textContent = 'Digital Payments & Settlement Platform';
+      title.textContent = project.title;
     }
 
     updatePrivateProjectThumbnail(frameDocument);
 
-    card.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      openPrivateCaseStudy();
-    }, true);
+    if (!card.dataset.privateClickBound) {
+      card.dataset.privateClickBound = 'true';
+      card.addEventListener('click', (event) => {
+        const selectedProject = privateProjectById(card.getAttribute('data-private-project-id'));
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        openPrivateCaseStudy(selectedProject.id);
+      }, true);
+    }
+  });
+}
+
+function updateProjectCard(frameDocument, card, project, variant = 'grid') {
+  card.setAttribute('href', `#${project.id}`);
+  card.setAttribute('data-private-project-id', project.id);
+  card.setAttribute('data-private-case-path', project.casePath);
+
+  const category = card.querySelector(variant === 'suggestion' ? '.framer-11p7syy p' : '.framer-1qv04uv p');
+  const title = card.querySelector(variant === 'suggestion' ? '.framer-1yjn5x6 h3' : '.framer-1hd1k8e h3');
+  const image = card.querySelector('img');
+
+  if (category) {
+    category.textContent = project.category;
   }
+
+  if (title) {
+    title.textContent = project.title;
+  }
+
+  if (image) {
+    image.src = project.thumbnail;
+    image.srcset = project.thumbnail;
+    image.alt = project.alt;
+  }
+
+  updatePrivateProjectThumbnail(frameDocument);
+}
+
+function tunePrivateCaseSuggestions(frameDocument, currentProjectId, openPrivateCaseStudy) {
+  if (!currentProjectId || !openPrivateCaseStudy) {
+    return;
+  }
+
+  const section = frameDocument.querySelector('[data-framer-name="Projects Section"]');
+  if (!section) {
+    return;
+  }
+
+  section.classList.remove('digital-payments-source-hidden');
+  section.style.removeProperty('display');
+  section.style.removeProperty('visibility');
+
+  const suggestions = PRIVATE_PROJECTS.filter((project) => project.id !== currentProjectId).slice(0, 2);
+  const cards = [...section.querySelectorAll('a.framer-UGeb1, a.framer-q6VTF')];
+
+  cards.forEach((card, index) => {
+    const wrapper = card.closest('.ssr-variant') || card.parentElement;
+    const project = suggestions[index];
+
+    if (!project) {
+      wrapper?.style.setProperty('display', 'none', 'important');
+      return;
+    }
+
+    wrapper?.style.removeProperty('display');
+    wrapper?.style.removeProperty('visibility');
+    updateProjectCard(frameDocument, card, project, 'suggestion');
+
+    if (!card.dataset.privateSuggestionClickBound) {
+      card.dataset.privateSuggestionClickBound = 'true';
+      card.addEventListener('click', (event) => {
+        const selectedProject = privateProjectById(card.getAttribute('data-private-project-id'));
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        openPrivateCaseStudy(selectedProject.id);
+      }, true);
+    }
+  });
 }
 
 function tuneFramerFrame(
@@ -260,7 +371,8 @@ function tuneFramerFrame(
   shouldAlignHomeTalk,
   shouldExpandHomeProjects,
   shouldTunePrivateIndex,
-  openPrivateCaseStudy
+  openPrivateCaseStudy,
+  currentPrivateProjectId
 ) {
   const frameDocument = frame.contentDocument;
 
@@ -486,10 +598,8 @@ function tuneFramerFrame(
     main?.style.setProperty('max-width', 'none', 'important');
     main?.style.setProperty('flex', '1 1 auto', 'important');
 
-    const otherProjectsSection = frameDocument.querySelector('[data-framer-name="Projects Section"]');
     const bottomMediaBlock = frameDocument.querySelector('[data-framer-name="Heading + Paragraph"] > .framer-1kf03ng');
 
-    otherProjectsSection?.style.setProperty('display', 'none', 'important');
     bottomMediaBlock?.style.setProperty('display', 'none', 'important');
 
     if (!frameDocument.getElementById('digital-payments-video-style')) {
@@ -503,10 +613,28 @@ function tuneFramerFrame(
           overflow-wrap: anywhere !important;
         }
 
+        html,
+        body {
+          max-width: 100% !important;
+          overflow-x: hidden !important;
+        }
+
+        [data-framer-name="Heading + Paragraph"],
+        [data-framer-name="Heading + Paragraph"] > * {
+          max-width: 100% !important;
+          min-width: 0 !important;
+        }
+
         [data-framer-name="Heading + Paragraph"] h1 {
+          width: 100% !important;
+          max-width: calc(100vw - 48px) !important;
           font-size: clamp(30px, 4.2vw, 56px) !important;
           line-height: 1.05em !important;
           letter-spacing: 0 !important;
+        }
+
+        [data-framer-name="Heading + Paragraph"] h1.framer-text {
+          max-width: calc(100vw - 48px) !important;
         }
 
         @media (max-width: 1199.98px) {
@@ -570,6 +698,8 @@ function tuneFramerFrame(
         heading.insertAdjacentElement('afterend', card);
       }
     }
+
+    tunePrivateCaseSuggestions(frameDocument, currentPrivateProjectId, openPrivateCaseStudy);
   }
 
   if (shouldScrollToContact) {
@@ -622,7 +752,8 @@ function tuneFramerFrameWhenReady(
   shouldAlignHomeTalk,
   shouldExpandHomeProjects = false,
   shouldTunePrivateIndex = false,
-  openPrivateCaseStudy = null
+  openPrivateCaseStudy = null,
+  currentPrivateProjectId = null
 ) {
   let attempts = 0;
 
@@ -635,7 +766,8 @@ function tuneFramerFrameWhenReady(
       shouldAlignHomeTalk,
       shouldExpandHomeProjects,
       shouldTunePrivateIndex,
-      openPrivateCaseStudy
+      openPrivateCaseStudy,
+      currentPrivateProjectId
     );
 
     if (attempts < 30) {
@@ -654,16 +786,17 @@ function App() {
   const [isUnlocking, setIsUnlocking] = React.useState(false);
   const path = currentPath();
   const privateProjectPage = isPrivateProjectPath();
-  const privateCaseStudyPage = isPrivateCaseStudyPath();
+  const privateCaseProject = privateProjectByCasePath(path);
+  const privateCaseStudyPage = isPrivateCaseStudyPath(path);
   const privateProjectLocked = privateProjectPage && !hasPrivateAccess;
   const contactPage = path === '/contact';
   const homePage = path === '/' || contactPage;
 
-  async function requestPrivateCaseStudyHtml() {
+  async function requestPrivateCaseStudyHtml(projectId = PRIVATE_PROJECTS[0].id) {
     const result = await fetch('/api/private-project', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password })
+      body: JSON.stringify({ password, project: projectId })
     });
 
     if (!result.ok) {
@@ -673,18 +806,19 @@ function App() {
     return result.text();
   }
 
-  async function fetchPrivateCaseStudy() {
-    setPrivateHtml(await requestPrivateCaseStudyHtml());
+  async function fetchPrivateCaseStudy(projectId = PRIVATE_PROJECTS[0].id) {
+    setPrivateHtml(await requestPrivateCaseStudyHtml(projectId));
   }
 
-  async function openPrivateCaseStudy() {
+  async function openPrivateCaseStudy(projectId = PRIVATE_PROJECTS[0].id) {
+    const project = privateProjectById(projectId);
     setIsUnlocking(true);
     setError('');
 
     try {
-      await fetchPrivateCaseStudy();
+      await fetchPrivateCaseStudy(project.id);
       setHasPrivateAccess(true);
-      window.history.pushState({}, '', PRIVATE_PROJECT_CASE_PATH);
+      window.history.pushState({}, '', project.casePath);
     } catch {
       setError('Unable to open project. Please enter the password again.');
       setHasPrivateAccess(false);
@@ -701,7 +835,7 @@ function App() {
 
     try {
       if (privateCaseStudyPage) {
-        await fetchPrivateCaseStudy();
+        await fetchPrivateCaseStudy(privateCaseProject?.id || PRIVATE_PROJECTS[0].id);
       } else {
         await requestPrivateCaseStudyHtml();
         setPrivateHtml('');
@@ -724,7 +858,7 @@ function App() {
           className="framer-frame"
           title="Framed by Harsh private project"
           srcDoc={privateHtml}
-          onLoad={(event) => tuneFramerFrameWhenReady(event.currentTarget, true, false, false)}
+          onLoad={(event) => tuneFramerFrameWhenReady(event.currentTarget, true, false, false, false, false, openPrivateCaseStudy, privateCaseProject?.id)}
         />
       ) : privateProjectPage && hasPrivateAccess ? (
         <iframe

@@ -2,6 +2,10 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const PASSWORD = process.env.PRIVATE_PROJECT_PASSWORD || 'accinternal';
+const PROJECT_FILES = {
+  'digital-payments-settlement-platform': 'private-digital-payments-settlement-platform.html',
+  'secure-network-access-management-platform': 'private-secure-network-access-management-platform.html'
+};
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
@@ -23,7 +27,8 @@ export default async function handler(request, response) {
     return;
   }
 
-  const filePath = path.join(process.cwd(), 'api', 'protected', 'private-digital-payments-settlement-platform.html');
+  const projectFile = PROJECT_FILES[body.project] || PROJECT_FILES['digital-payments-settlement-platform'];
+  const filePath = path.join(process.cwd(), 'api', 'protected', projectFile);
   const html = await readFile(filePath, 'utf8');
 
   response.setHeader('Cache-Control', 'no-store, max-age=0');

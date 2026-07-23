@@ -3,6 +3,11 @@ import path from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+const projectFiles = {
+  'digital-payments-settlement-platform': 'private-digital-payments-settlement-platform.html',
+  'secure-network-access-management-platform': 'private-secure-network-access-management-platform.html'
+};
+
 function privateProjectApi() {
   return {
     name: 'private-project-api',
@@ -35,7 +40,8 @@ function privateProjectApi() {
             return;
           }
 
-          const filePath = path.join(server.config.root, 'api', 'protected', 'private-digital-payments-settlement-platform.html');
+          const projectFile = projectFiles[body.project] || projectFiles['digital-payments-settlement-platform'];
+          const filePath = path.join(server.config.root, 'api', 'protected', projectFile);
           const html = await readFile(filePath, 'utf8');
           response.statusCode = 200;
           response.setHeader('Cache-Control', 'no-store, max-age=0');
