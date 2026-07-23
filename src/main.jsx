@@ -215,8 +215,11 @@ function tuneFramerFrame(frame, shouldFixPrivateLayout, shouldScrollToContact, s
         .framer-124fobe a.framer-q6VTF .framer-1pby2nn,
         .framer-15tq2a5 a.framer-q6VTF .framer-1pby2nn {
           width: 100% !important;
+          max-width: 100% !important;
+          min-width: 0 !important;
+          flex: 0 1 auto !important;
           height: auto !important;
-          min-height: 62px !important;
+          min-height: 76px !important;
           gap: 6px !important;
           overflow: visible !important;
         }
@@ -226,8 +229,23 @@ function tuneFramerFrame(frame, shouldFixPrivateLayout, shouldScrollToContact, s
         .framer-15tq2a5 a.framer-q6VTF .framer-1qv04uv,
         .framer-15tq2a5 a.framer-q6VTF .framer-1hd1k8e {
           width: 100% !important;
+          max-width: 100% !important;
+          min-width: 0 !important;
+          flex: 0 1 auto !important;
           height: auto !important;
+          min-height: 0 !important;
           overflow: visible !important;
+        }
+
+        .framer-124fobe a.framer-q6VTF .framer-1qv04uv *,
+        .framer-124fobe a.framer-q6VTF .framer-1hd1k8e *,
+        .framer-15tq2a5 a.framer-q6VTF .framer-1qv04uv *,
+        .framer-15tq2a5 a.framer-q6VTF .framer-1hd1k8e * {
+          max-width: 100% !important;
+          overflow: visible !important;
+          text-overflow: clip !important;
+          white-space: normal !important;
+          overflow-wrap: anywhere !important;
         }
 
         .framer-124fobe a.framer-q6VTF .framer-1qv04uv p,
@@ -239,6 +257,8 @@ function tuneFramerFrame(frame, shouldFixPrivateLayout, shouldScrollToContact, s
 
         .framer-124fobe a.framer-q6VTF .framer-1hd1k8e h3,
         .framer-15tq2a5 a.framer-q6VTF .framer-1hd1k8e h3 {
+          display: block !important;
+          width: 100% !important;
           font-size: 14px !important;
           line-height: 1.25em !important;
           white-space: normal !important;
