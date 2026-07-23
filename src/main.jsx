@@ -221,6 +221,48 @@ function updatePrivateProjectThumbnail(frameDocument) {
   }
 }
 
+function stabilizeCompactProjectCards(frameDocument) {
+  const frameWidth = frameDocument.documentElement.clientWidth || window.innerWidth;
+  if (frameWidth > 480) {
+    return;
+  }
+
+  const cards = [...frameDocument.querySelectorAll('.framer-124fobe a.framer-q6VTF, .framer-15tq2a5 a.framer-q6VTF')];
+
+  for (const card of cards) {
+    const applyStableText = () => {
+      const textWrap = card.querySelector('.framer-1pby2nn');
+      const category = card.querySelector('.framer-1qv04uv');
+      const title = card.querySelector('.framer-1hd1k8e');
+
+      for (const element of [category, title]) {
+        element?.style.setProperty('width', '100%', 'important');
+        element?.style.setProperty('max-width', '100%', 'important');
+        element?.style.setProperty('transform', 'none', 'important');
+      }
+
+      if (textWrap && category && title) {
+        const gap = 6;
+        const stableHeight = Math.max(76, Math.ceil(category.getBoundingClientRect().height + title.getBoundingClientRect().height + gap));
+        textWrap.style.setProperty('height', `${stableHeight}px`, 'important');
+        textWrap.style.setProperty('min-height', `${stableHeight}px`, 'important');
+        textWrap.style.setProperty('transform', 'none', 'important');
+      }
+    };
+
+    applyStableText();
+
+    if (!card.dataset.compactTextStableBound) {
+      card.dataset.compactTextStableBound = 'true';
+      card.addEventListener('pointerenter', () => {
+        [0, 80, 180, 360].forEach((delay) => {
+          window.setTimeout(applyStableText, delay);
+        });
+      }, true);
+    }
+  }
+}
+
 function ensurePrivateIndexBackButton(frameDocument) {
   if (frameDocument.querySelector('.local-private-back-button')) {
     return;
@@ -440,15 +482,21 @@ function tuneFramerFrame(
         flex: 0 0 auto !important;
         height: 24px !important;
         max-height: 24px !important;
-        opacity: 1 !important;
-        overflow: hidden !important;
+        opacity: 0 !important;
+        overflow: visible !important;
         pointer-events: none !important;
-        position: relative !important;
-        right: auto !important;
-        top: auto !important;
-        transform: none !important;
+        position: absolute !important;
+        right: 0 !important;
+        top: 50% !important;
+        transform: translate(-48px, -50%) !important;
+        transition: opacity 0.18s ease, transform 0.34s cubic-bezier(0.44, 0, 0, 1) !important;
         width: min(120px, 100%) !important;
-        z-index: 0 !important;
+        z-index: 2 !important;
+      }
+
+      .local-private-index-page .framer-124fobe a.framer-q6VTF:hover .framer-1jhy1kf-container {
+        opacity: 1 !important;
+        transform: translate(0, -50%) !important;
       }
 
       .local-private-index-page .framer-124fobe a.framer-q6VTF .framer-1jhy1kf-container section {
@@ -495,29 +543,74 @@ function tuneFramerFrame(
           gap: 14px !important;
         }
 
+        .local-private-index-page .framer-124fobe a.framer-q6VTF .framer-1jhy1kf-container,
         .framer-124fobe a.framer-q6VTF .framer-1jhy1kf-container,
         .framer-15tq2a5 a.framer-q6VTF .framer-1jhy1kf-container {
           display: block !important;
           flex: 0 0 auto !important;
-          height: 16px !important;
-          max-height: 16px !important;
-          opacity: 1 !important;
-          overflow: hidden !important;
+          height: 18px !important;
+          max-height: 18px !important;
+          opacity: 0 !important;
+          overflow: visible !important;
           pointer-events: none !important;
-          position: relative !important;
-          right: auto !important;
-          top: auto !important;
-          transform: none !important;
-          width: 100% !important;
-          z-index: 0 !important;
+          position: absolute !important;
+          right: 0 !important;
+          top: 0 !important;
+          transform: translateX(-48px) !important;
+          transition: opacity 0.18s ease, transform 0.34s cubic-bezier(0.44, 0, 0, 1) !important;
+          width: clamp(56px, 30%, 120px) !important;
+          z-index: 2 !important;
         }
 
+        .local-private-index-page .framer-124fobe a.framer-q6VTF:hover .framer-1jhy1kf-container,
+        .framer-124fobe a.framer-q6VTF:hover .framer-1jhy1kf-container,
+        .framer-15tq2a5 a.framer-q6VTF:hover .framer-1jhy1kf-container {
+          opacity: 1 !important;
+          transform: translateX(0) !important;
+        }
+
+        .local-private-index-page .framer-124fobe a.framer-q6VTF .framer-1jhy1kf-container section,
         .framer-124fobe a.framer-q6VTF .framer-1jhy1kf-container section,
         .framer-15tq2a5 a.framer-q6VTF .framer-1jhy1kf-container section {
-          height: 16px !important;
-          max-height: 16px !important;
+          height: 18px !important;
+          max-height: 18px !important;
           overflow: hidden !important;
           padding: 0 !important;
+        }
+
+        @media (max-width: 480px) {
+          .local-private-index-page .framer-124fobe a.framer-q6VTF .framer-1jhy1kf-container,
+          .framer-124fobe a.framer-q6VTF .framer-1jhy1kf-container,
+          .framer-15tq2a5 a.framer-q6VTF .framer-1jhy1kf-container {
+            height: 12px !important;
+            max-height: 12px !important;
+            top: 2px !important;
+            transform: translateX(-20px) !important;
+            width: 32px !important;
+          }
+
+          .local-private-index-page .framer-124fobe a.framer-q6VTF:hover .framer-1jhy1kf-container,
+          .framer-124fobe a.framer-q6VTF:hover .framer-1jhy1kf-container,
+          .framer-15tq2a5 a.framer-q6VTF:hover .framer-1jhy1kf-container {
+            transform: translateX(0) !important;
+          }
+
+          .local-private-index-page .framer-124fobe a.framer-q6VTF .framer-1jhy1kf-container section,
+          .framer-124fobe a.framer-q6VTF .framer-1jhy1kf-container section,
+          .framer-15tq2a5 a.framer-q6VTF .framer-1jhy1kf-container section {
+            height: 12px !important;
+            max-height: 12px !important;
+          }
+
+          .local-private-index-page .framer-124fobe a.framer-q6VTF:hover .framer-1qv04uv,
+          .framer-124fobe a.framer-q6VTF:hover .framer-1qv04uv,
+          .local-private-index-page .framer-124fobe a.framer-q6VTF:hover .framer-1hd1k8e,
+          .framer-124fobe a.framer-q6VTF:hover .framer-1hd1k8e,
+          .framer-15tq2a5 a.framer-q6VTF:hover .framer-1qv04uv,
+          .framer-15tq2a5 a.framer-q6VTF:hover .framer-1hd1k8e {
+            transform: none !important;
+            width: 100% !important;
+          }
         }
 
         .framer-124fobe a.framer-q6VTF .framer-14ikcuq,
@@ -727,6 +820,7 @@ function tuneFramerFrame(
 
   updateFramedByHarshProjectLabel(frameDocument);
   updatePrivateProjectThumbnail(frameDocument);
+  stabilizeCompactProjectCards(frameDocument);
 
   const talkSections = [...frameDocument.querySelectorAll('section, a, div')].filter((element) => {
     return /Let's (Talk|Connect)!/i.test(element.textContent || '');
