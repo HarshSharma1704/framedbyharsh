@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import './styles.css';
 
 const PRIVATE_PROJECT_PATH = '/private-projects/digital-payments-settlement-platform';
+const PRIVATE_PROJECT_CASE_PATH = '/private-projects/digital-payments-settlement-platform/case-study';
 const DIGITAL_PAYMENTS_VIDEO = '/assets/digital-payments-mockup.mp4';
 const DIGITAL_PAYMENTS_VIDEO_FALLBACK = 'https://framerusercontent.com/assets/STpgrtJgdEXcsv1nWF8ULluFG2s.mp4';
 
@@ -29,6 +30,10 @@ function currentPath() {
 function isPrivateProjectPath() {
   const path = currentPath();
   return path === PRIVATE_PROJECT_PATH || path.startsWith('/private-projects/');
+}
+
+function isPrivateCaseStudyPath() {
+  return currentPath() === PRIVATE_PROJECT_CASE_PATH;
 }
 
 function alignHomeTalkText(frameDocument) {
@@ -157,7 +162,60 @@ function updateFramedByHarshProjectLabel(frameDocument) {
   }
 }
 
-function tuneFramerFrame(frame, shouldFixPrivateLayout, shouldScrollToContact, shouldAlignHomeTalk, shouldExpandHomeProjects) {
+function tunePrivateProjectsIndex(frameDocument, openPrivateCaseStudy) {
+  const headings = [...frameDocument.querySelectorAll('h1, h2, p, div.framer-text')];
+  const pageTitle = headings.find((element) => /My Remarkable Projects/i.test(element.textContent || ''));
+
+  if (pageTitle) {
+    pageTitle.textContent = 'Private Projects';
+  }
+
+  const projectCards = [...frameDocument.querySelectorAll('a.framer-q6VTF')];
+
+  for (const card of projectCards) {
+    const href = card.getAttribute('href') || '';
+    const wrapper = card.closest('.ssr-variant') || card.parentElement;
+    const isPrivateCard = href.includes('/private-projects/digital-payments-settlement-platform')
+      || card.getAttribute('data-private-case-path') === PRIVATE_PROJECT_CASE_PATH;
+
+    if (!isPrivateCard) {
+      wrapper?.style.setProperty('display', 'none', 'important');
+      continue;
+    }
+
+    wrapper?.style.removeProperty('display');
+
+    card.setAttribute('href', '#digital-payments-case-study');
+    card.setAttribute('data-private-case-path', PRIVATE_PROJECT_CASE_PATH);
+
+    const category = card.querySelector('.framer-1qv04uv p');
+    const title = card.querySelector('.framer-1hd1k8e h3');
+
+    if (category) {
+      category.textContent = 'PRIVATE CASE STUDY';
+    }
+
+    if (title) {
+      title.textContent = 'Digital Payments & Settlement Platform';
+    }
+
+    card.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      openPrivateCaseStudy();
+    }, true);
+  }
+}
+
+function tuneFramerFrame(
+  frame,
+  shouldFixPrivateLayout,
+  shouldScrollToContact,
+  shouldAlignHomeTalk,
+  shouldExpandHomeProjects,
+  shouldTunePrivateIndex,
+  openPrivateCaseStudy
+) {
   const frameDocument = frame.contentDocument;
 
   if (!frameDocument) {
@@ -312,6 +370,32 @@ function tuneFramerFrame(frame, shouldFixPrivateLayout, shouldScrollToContact, s
       const style = frameDocument.createElement('style');
       style.id = 'digital-payments-video-style';
       style.textContent = `
+        [data-framer-name="Heading + Paragraph"] h1,
+        [data-framer-name="Heading + Paragraph"] h2,
+        [data-framer-name="Heading + Paragraph"] .framer-text {
+          max-width: 100% !important;
+          overflow-wrap: anywhere !important;
+        }
+
+        [data-framer-name="Heading + Paragraph"] h1 {
+          font-size: clamp(30px, 4.2vw, 56px) !important;
+          line-height: 1.05em !important;
+          letter-spacing: 0 !important;
+        }
+
+        @media (max-width: 1199.98px) {
+          [data-framer-name="Heading + Paragraph"] h1 {
+            font-size: clamp(28px, 5.5vw, 44px) !important;
+          }
+        }
+
+        @media (max-width: 809.98px) {
+          [data-framer-name="Heading + Paragraph"] h1 {
+            font-size: clamp(24px, 8vw, 32px) !important;
+            line-height: 1.08em !important;
+          }
+        }
+
         .digital-payments-video-card {
           width: 100%;
           aspect-ratio: 16 / 9;
@@ -380,6 +464,10 @@ function tuneFramerFrame(frame, shouldFixPrivateLayout, shouldScrollToContact, s
     ensureHomeProjectGrid(frameDocument);
   }
 
+  if (shouldTunePrivateIndex && openPrivateCaseStudy) {
+    tunePrivateProjectsIndex(frameDocument, openPrivateCaseStudy);
+  }
+
   updateFramedByHarshProjectLabel(frameDocument);
 
   const talkSections = [...frameDocument.querySelectorAll('section, a, div')].filter((element) => {
@@ -399,12 +487,28 @@ function tuneFramerFrame(frame, shouldFixPrivateLayout, shouldScrollToContact, s
   }
 }
 
-function tuneFramerFrameWhenReady(frame, shouldFixPrivateLayout, shouldScrollToContact, shouldAlignHomeTalk, shouldExpandHomeProjects = false) {
+function tuneFramerFrameWhenReady(
+  frame,
+  shouldFixPrivateLayout,
+  shouldScrollToContact,
+  shouldAlignHomeTalk,
+  shouldExpandHomeProjects = false,
+  shouldTunePrivateIndex = false,
+  openPrivateCaseStudy = null
+) {
   let attempts = 0;
 
   function tune() {
     attempts += 1;
-    tuneFramerFrame(frame, shouldFixPrivateLayout, shouldScrollToContact, shouldAlignHomeTalk, shouldExpandHomeProjects);
+    tuneFramerFrame(
+      frame,
+      shouldFixPrivateLayout,
+      shouldScrollToContact,
+      shouldAlignHomeTalk,
+      shouldExpandHomeProjects,
+      shouldTunePrivateIndex,
+      openPrivateCaseStudy
+    );
 
     if (attempts < 30) {
       window.setTimeout(tune, 500);
@@ -417,13 +521,50 @@ function tuneFramerFrameWhenReady(frame, shouldFixPrivateLayout, shouldScrollToC
 function App() {
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
+  const [hasPrivateAccess, setHasPrivateAccess] = React.useState(false);
   const [privateHtml, setPrivateHtml] = React.useState('');
   const [isUnlocking, setIsUnlocking] = React.useState(false);
   const path = currentPath();
   const privateProjectPage = isPrivateProjectPath();
-  const privateProjectLocked = privateProjectPage && !privateHtml;
+  const privateCaseStudyPage = isPrivateCaseStudyPath();
+  const privateProjectLocked = privateProjectPage && !hasPrivateAccess;
   const contactPage = path === '/contact';
   const homePage = path === '/' || contactPage;
+
+  async function requestPrivateCaseStudyHtml() {
+    const result = await fetch('/api/private-project', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password })
+    });
+
+    if (!result.ok) {
+      throw new Error('Incorrect password');
+    }
+
+    return result.text();
+  }
+
+  async function fetchPrivateCaseStudy() {
+    setPrivateHtml(await requestPrivateCaseStudyHtml());
+  }
+
+  async function openPrivateCaseStudy() {
+    setIsUnlocking(true);
+    setError('');
+
+    try {
+      await fetchPrivateCaseStudy();
+      setHasPrivateAccess(true);
+      window.history.pushState({}, '', PRIVATE_PROJECT_CASE_PATH);
+    } catch {
+      setError('Unable to open project. Please enter the password again.');
+      setHasPrivateAccess(false);
+      setPrivateHtml('');
+    } finally {
+      setIsUnlocking(false);
+    }
+  }
 
   async function unlockPrivateProject(event) {
     event.preventDefault();
@@ -431,21 +572,17 @@ function App() {
     setError('');
 
     try {
-      const result = await fetch('/api/private-project', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password })
-      });
-
-      if (!result.ok) {
-        setError('Incorrect password');
-        return;
+      if (privateCaseStudyPage) {
+        await fetchPrivateCaseStudy();
+      } else {
+        await requestPrivateCaseStudyHtml();
+        setPrivateHtml('');
       }
 
-      setPrivateHtml(await result.text());
+      setHasPrivateAccess(true);
       setError('');
-    } catch {
-      setError('Unable to unlock project. Please try again.');
+    } catch (unlockError) {
+      setError(unlockError.message === 'Incorrect password' ? 'Incorrect password' : 'Unable to unlock project. Please try again.');
     } finally {
       setIsUnlocking(false);
     }
@@ -453,13 +590,21 @@ function App() {
 
   return (
     <>
-      {privateProjectPage && privateHtml ? (
+      {privateProjectPage && hasPrivateAccess && privateCaseStudyPage && privateHtml ? (
         <iframe
           key={`${window.location.pathname}-private`}
           className="framer-frame"
           title="Framed by Harsh private project"
           srcDoc={privateHtml}
           onLoad={(event) => tuneFramerFrameWhenReady(event.currentTarget, true, false, false)}
+        />
+      ) : privateProjectPage && hasPrivateAccess ? (
+        <iframe
+          key={`${window.location.pathname}-private-index`}
+          className="framer-frame"
+          title="Framed by Harsh private projects"
+          src="/framer/projects.html"
+          onLoad={(event) => tuneFramerFrameWhenReady(event.currentTarget, false, false, false, false, true, openPrivateCaseStudy)}
         />
       ) : (
         <iframe
