@@ -795,113 +795,9 @@
       grid-template-columns: 1fr;
     }
   }
-  body.digital-payments-locked [data-framer-root] {
-    filter: blur(16px) brightness(0.35);
-    pointer-events: none;
-    user-select: none;
-  }
-  .digital-payments-gate {
-    position: fixed;
-    inset: 0;
-    z-index: 999999;
-    display: grid;
-    place-items: center;
-    padding: 24px;
-    background: rgba(5, 5, 5, 0.74);
-    backdrop-filter: blur(8px);
-  }
-  .digital-payments-gate[hidden] {
-    display: none !important;
-  }
-  .digital-payments-gate__panel {
-    width: min(100%, 420px);
-    box-sizing: border-box;
-    padding: 28px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    background: rgba(18, 18, 18, 0.94);
-    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.48);
-    color: #e6e6e6;
-    font-family: Inter, "Inter Placeholder", sans-serif;
-  }
-  .digital-payments-gate__status {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 18px;
-    color: #4ce6a6;
-    font-size: 12px;
-    font-weight: 300;
-    line-height: 1.4;
-    text-transform: uppercase;
-  }
-  .digital-payments-gate__dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    background: #4ce6a6;
-    box-shadow: 0 0 0 6px rgba(76, 230, 166, 0.14);
-  }
-  .digital-payments-gate h1 {
-    margin: 0;
-    color: #f5f5f5;
-    font-size: 28px;
-    font-weight: 500;
-    line-height: 1.15;
-  }
-  .digital-payments-gate p {
-    margin: 12px 0 0;
-    color: #999;
-    font-size: 14px;
-    font-weight: 300;
-    line-height: 1.6;
-  }
-  .digital-payments-gate label {
-    display: block;
-    margin-top: 22px;
-    color: #cfcfcf;
-    font-size: 13px;
-    line-height: 1.4;
-  }
-  .digital-payments-gate input {
-    width: 100%;
-    height: 46px;
-    box-sizing: border-box;
-    margin-top: 8px;
-    padding: 0 14px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 8px;
-    outline: none;
-    background: #050505;
-    color: #f5f5f5;
-    font: inherit;
-  }
-  .digital-payments-gate input:focus {
-    border-color: rgba(76, 230, 166, 0.8);
-    box-shadow: 0 0 0 3px rgba(76, 230, 166, 0.12);
-  }
-  .digital-payments-gate__error {
-    color: #ff7a7a !important;
-  }
-  .digital-payments-gate button {
-    width: 100%;
-    height: 46px;
-    margin-top: 18px;
-    border: 0;
-    border-radius: 8px;
-    background: #e6e6e6;
-    color: #050505;
-    font: inherit;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-  }
 </style>
 <script>
 (() => {
-  const accessKey = 'framed-private-project-access';
-  const password = 'accinternal';
-
   function customizeProject() {
     const article = document.querySelector('[data-framer-name="Heading + Paragraph"]');
     const heading = article?.firstElementChild;
@@ -1008,40 +904,7 @@
     }
   }
 
-  function unlock(gate) {
-    localStorage.setItem(accessKey, 'granted');
-    document.body.classList.remove('digital-payments-locked');
-    gate.hidden = true;
-  }
-
-  function setupGate() {
-    const gate = document.createElement('div');
-    gate.className = 'digital-payments-gate';
-    gate.setAttribute('role', 'dialog');
-    gate.setAttribute('aria-modal', 'true');
-    gate.innerHTML = '<form class="digital-payments-gate__panel"><div class="digital-payments-gate__status"><span class="digital-payments-gate__dot" aria-hidden="true"></span>Private Case Studies</div><h1>Password required</h1><p>Enter the access password to view this project.</p><label for="digital-payments-password">Password</label><input id="digital-payments-password" type="password" autocomplete="current-password" autofocus><p class="digital-payments-gate__error" hidden>Incorrect password</p><button type="submit">Unlock Project</button></form>';
-    document.body.append(gate);
-
-    if (localStorage.getItem(accessKey) === 'granted') {
-      unlock(gate);
-      return;
-    }
-
-    document.body.classList.add('digital-payments-locked');
-    gate.querySelector('form').addEventListener('submit', (event) => {
-      event.preventDefault();
-      const input = gate.querySelector('input');
-      const error = gate.querySelector('.digital-payments-gate__error');
-      if (input.value === password) {
-        unlock(gate);
-      } else {
-        error.hidden = false;
-      }
-    });
-  }
-
   window.addEventListener('load', () => {
-    setupGate();
     customizeProject();
     window.setTimeout(customizeProject, 1500);
     window.setTimeout(customizeProject, 3000);

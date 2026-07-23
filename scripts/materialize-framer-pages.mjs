@@ -12,8 +12,7 @@ const pages = {
   'stack.html': '.capture/homestack.html',
   'project-3d-web-portfolio.html': '.capture/homeprojects-3d-web-portfolio.html',
   'project-north-website-design-ui-ux.html': '.capture/homeprojects-north-website-design-ui-ux.html',
-  'project-vr-hospital-simulation.html': '.capture/homeprojects-vr-hospital-simulation.html',
-  'private-digital-payments-settlement-platform.html': '.capture/homeprivate-projects-digital-payments-settlement-platform.html'
+  'project-vr-hospital-simulation.html': '.capture/homeprojects-vr-hospital-simulation.html'
 };
 
 const linkMap = new Map([
@@ -75,6 +74,19 @@ function patch(html) {
     </style>`
     : '';
 
+  const globalFramerFixes = `<style data-local-global-framer-fixes>
+      #__framer-badge-container,
+      [id*="framer-badge"],
+      [class*="framer-badge"],
+      [data-framer-badge],
+      a[href*="framer.com"][style*="fixed"] {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+    </style>`;
+
   const desktopNavFix = `<style data-local-nav-height-fix>
       @media (min-width: 1200px) {
         nav.framer-ZwsEl {
@@ -86,7 +98,7 @@ function patch(html) {
 
   next = next.replace(
     '</head>',
-    `${projectDesktopShellFix}${desktopNavFix}<script>
+    `${globalFramerFixes}${projectDesktopShellFix}${desktopNavFix}<script>
       window.addEventListener('click', function(event) {
         const anchor = event.target && event.target.closest ? event.target.closest('a[href]') : null;
         if (!anchor) return;

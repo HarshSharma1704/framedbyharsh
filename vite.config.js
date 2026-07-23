@@ -3,44 +3,50 @@ import path from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-const routeFiles = new Map([
-  ['/', '/framer/home.html'],
-  ['/about', '/framer/about.html'],
-  ['/projects', '/framer/projects.html'],
-  ['/stack', '/framer/stack.html'],
-  ['/contact', '/framer/home.html'],
-  ['/projects/3d-web-portfolio', '/framer/project-3d-web-portfolio.html'],
-  ['/projects/north-website-design-ui-ux', '/framer/project-north-website-design-ui-ux.html'],
-  ['/projects/vr-hospital-simulation', '/framer/project-vr-hospital-simulation.html'],
-  ['/private-projects/digital-payments-settlement-platform', '/framer/private-digital-payments-settlement-platform.html']
-]);
-
-function framerRoutes() {
+function privateProjectApi() {
   return {
-    name: 'framer-routes',
+    name: 'private-project-api',
     configureServer(server) {
-      server.middlewares.use(async (request, response, next) => {
-        const requestUrl = new URL(request.url, 'http://localhost');
-        const route = requestUrl.pathname.replace(/\/$/, '') || '/';
-        const file = routeFiles.get(route);
-
-        if (!file) {
-          next();
+      server.middlewares.use('/api/private-project', async (request, response) => {
+        if (request.method !== 'POST') {
+          response.statusCode = 405;
+          response.setHeader('Content-Type', 'application/json');
+          response.end(JSON.stringify({ error: 'Method not allowed' }));
           return;
         }
 
-        const htmlPath = path.join(server.config.publicDir, file);
-        const html = await readFile(htmlPath, 'utf8');
-        const transformed = await server.transformIndexHtml(requestUrl.pathname, html);
+        let rawBody = '';
+        request.on('data', (chunk) => {
+          rawBody += chunk;
+        });
+        request.on('end', async () => {
+          let body = {};
+          try {
+            body = JSON.parse(rawBody || '{}');
+          } catch {
+            body = {};
+          }
 
-        response.statusCode = 200;
-        response.setHeader('Content-Type', 'text/html');
-        response.end(transformed);
+          const password = process.env.PRIVATE_PROJECT_PASSWORD || 'accinternal';
+          if (body.password !== password) {
+            response.statusCode = 401;
+            response.setHeader('Content-Type', 'application/json');
+            response.end(JSON.stringify({ error: 'Incorrect password' }));
+            return;
+          }
+
+          const filePath = path.join(server.config.root, 'api', 'protected', 'private-digital-payments-settlement-platform.html');
+          const html = await readFile(filePath, 'utf8');
+          response.statusCode = 200;
+          response.setHeader('Cache-Control', 'no-store, max-age=0');
+          response.setHeader('Content-Type', 'text/html; charset=utf-8');
+          response.end(html);
+        });
       });
     }
   };
 }
 
 export default defineConfig({
-  plugins: [react(), framerRoutes()]
+  plugins: [react(), privateProjectApi()]
 });

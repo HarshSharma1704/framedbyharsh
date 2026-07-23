@@ -1,44 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/",
-      "destination": "/framer/home.html"
-    },
-    {
-      "source": "/about",
-      "destination": "/framer/about.html"
-    },
-    {
-      "source": "/projects",
-      "destination": "/framer/projects.html"
-    },
-    {
-      "source": "/stack",
-      "destination": "/framer/stack.html"
-    },
-    {
-      "source": "/contact",
-      "destination": "/framer/home.html"
-    },
-    {
-      "source": "/projects/3d-web-portfolio",
-      "destination": "/framer/project-3d-web-portfolio.html"
-    },
-    {
-      "source": "/projects/north-website-design-ui-ux",
-      "destination": "/framer/project-north-website-design-ui-ux.html"
-    },
-    {
-      "source": "/projects/vr-hospital-simulation",
-      "destination": "/framer/project-vr-hospital-simulation.html"
-    },
-    {
-      "source": "/private-projects/digital-payments-settlement-platform",
-      "destination": "/framer/private-digital-payments-settlement-platform.html"
-    },
-    {
       "source": "/(.*)",
-      "destination": "/framer/home.html"
+      "destination": "/index.html"
     }
   ]
 }
