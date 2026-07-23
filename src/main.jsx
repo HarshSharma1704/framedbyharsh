@@ -108,9 +108,9 @@ function ensureHomeProjectGrid(frameDocument) {
       href: '/private-projects/digital-payments-settlement-platform',
       category: 'PRIVATE CASE STUDIES',
       title: 'Show Other Projects',
-      image: '/assets/private-projects-thumbnail.png',
-      srcset: '/assets/private-projects-thumbnail.png',
-      alt: 'Private Projects'
+      image: '/assets/digital-payments-thumbnail.png',
+      srcset: '/assets/digital-payments-thumbnail.png',
+      alt: 'Digital Payments & Settlement Platform'
     }
   ];
 
@@ -162,7 +162,51 @@ function updateFramedByHarshProjectLabel(frameDocument) {
   }
 }
 
+function updatePrivateProjectThumbnail(frameDocument) {
+  const privateCards = [...frameDocument.querySelectorAll('a.framer-q6VTF')].filter((card) => {
+    const href = card.getAttribute('href') || '';
+    const privatePath = card.getAttribute('data-private-case-path') || '';
+    return href.includes('/private-projects/digital-payments-settlement-platform')
+      || privatePath === PRIVATE_PROJECT_CASE_PATH;
+  });
+
+  for (const card of privateCards) {
+    const image = card.querySelector('img');
+    if (!image) {
+      continue;
+    }
+
+    image.src = '/assets/digital-payments-thumbnail.png';
+    image.srcset = '/assets/digital-payments-thumbnail.png';
+    image.alt = 'Digital Payments & Settlement Platform';
+  }
+}
+
+function ensurePrivateIndexBackButton(frameDocument) {
+  if (frameDocument.querySelector('.local-private-back-button')) {
+    return;
+  }
+
+  const section = [...frameDocument.querySelectorAll('[data-framer-name="Projects Section"], section')].find((candidate) => {
+    return candidate.textContent?.includes('Private Projects') || candidate.querySelector('a.framer-q6VTF');
+  });
+
+  const host = section?.parentElement;
+  if (!section || !host) {
+    return;
+  }
+
+  const button = frameDocument.createElement('a');
+  button.className = 'local-private-back-button';
+  button.href = '/projects';
+  button.target = '_top';
+  button.innerHTML = '<span aria-hidden="true">←</span><span>Back to all projects</span>';
+  host.insertBefore(button, section);
+}
+
 function tunePrivateProjectsIndex(frameDocument, openPrivateCaseStudy) {
+  frameDocument.documentElement.classList.add('local-private-index-page');
+
   const headings = [...frameDocument.querySelectorAll('h1, h2, p, div.framer-text')];
   const pageTitle = headings.find((element) => /My Remarkable Projects/i.test(element.textContent || ''));
 
@@ -198,6 +242,8 @@ function tunePrivateProjectsIndex(frameDocument, openPrivateCaseStudy) {
     if (title) {
       title.textContent = 'Digital Payments & Settlement Platform';
     }
+
+    updatePrivateProjectThumbnail(frameDocument);
 
     card.addEventListener('click', (event) => {
       event.preventDefault();
@@ -243,6 +289,68 @@ function tuneFramerFrame(
         overflow-x: clip;
       }
 
+      .local-private-back-button {
+        align-items: center;
+        align-self: flex-start;
+        background: rgba(5, 5, 5, 0);
+        border: 1px solid var(--token-bbb54a95-9e73-4c8c-ac1e-b3ba6454c678, rgb(230, 230, 230));
+        border-radius: 12px;
+        color: var(--token-bbb54a95-9e73-4c8c-ac1e-b3ba6454c678, rgb(230, 230, 230));
+        display: inline-flex;
+        font-family: Inter, "Inter Placeholder", sans-serif;
+        font-size: 14px;
+        font-weight: 400;
+        gap: 8px;
+        height: 44px;
+        justify-content: center;
+        line-height: 1;
+        margin: 0 0 24px;
+        padding: 12px 18px;
+        position: relative;
+        text-decoration: none;
+        white-space: nowrap;
+        width: max-content;
+        z-index: 5;
+      }
+
+      .local-private-back-button:hover {
+        background: var(--token-fca815f1-c168-4500-ab2f-4b352d862cd9, rgb(26, 26, 26));
+      }
+
+      .local-private-index-page .framer-124fobe a.framer-q6VTF .framer-1pby2nn {
+        height: auto !important;
+        overflow: visible !important;
+        width: 100% !important;
+      }
+
+      .local-private-index-page .framer-124fobe a.framer-q6VTF .framer-1jhy1kf-container {
+        display: block !important;
+        flex: 0 0 auto !important;
+        height: 24px !important;
+        max-height: 24px !important;
+        opacity: 1 !important;
+        overflow: hidden !important;
+        pointer-events: none !important;
+        position: relative !important;
+        right: auto !important;
+        top: auto !important;
+        transform: none !important;
+        width: min(120px, 100%) !important;
+        z-index: 0 !important;
+      }
+
+      .local-private-index-page .framer-124fobe a.framer-q6VTF .framer-1jhy1kf-container section {
+        height: 24px !important;
+        max-height: 24px !important;
+        overflow: hidden !important;
+        padding: 0 !important;
+      }
+
+      .local-private-index-page .framer-124fobe a.framer-q6VTF .framer-1hd1k8e {
+        position: relative !important;
+        z-index: 1 !important;
+      }
+
       @media (max-width: 1199.98px) {
         .framer-124fobe,
         .framer-15tq2a5 {
@@ -277,9 +385,27 @@ function tuneFramerFrame(
 
         .framer-124fobe a.framer-q6VTF .framer-1jhy1kf-container,
         .framer-15tq2a5 a.framer-q6VTF .framer-1jhy1kf-container {
-          display: none !important;
-          opacity: 0 !important;
+          display: block !important;
+          flex: 0 0 auto !important;
+          height: 16px !important;
+          max-height: 16px !important;
+          opacity: 1 !important;
+          overflow: hidden !important;
           pointer-events: none !important;
+          position: relative !important;
+          right: auto !important;
+          top: auto !important;
+          transform: none !important;
+          width: 100% !important;
+          z-index: 0 !important;
+        }
+
+        .framer-124fobe a.framer-q6VTF .framer-1jhy1kf-container section,
+        .framer-15tq2a5 a.framer-q6VTF .framer-1jhy1kf-container section {
+          height: 16px !important;
+          max-height: 16px !important;
+          overflow: hidden !important;
+          padding: 0 !important;
         }
 
         .framer-124fobe a.framer-q6VTF .framer-14ikcuq,
@@ -466,9 +592,11 @@ function tuneFramerFrame(
 
   if (shouldTunePrivateIndex && openPrivateCaseStudy) {
     tunePrivateProjectsIndex(frameDocument, openPrivateCaseStudy);
+    ensurePrivateIndexBackButton(frameDocument);
   }
 
   updateFramedByHarshProjectLabel(frameDocument);
+  updatePrivateProjectThumbnail(frameDocument);
 
   const talkSections = [...frameDocument.querySelectorAll('section, a, div')].filter((element) => {
     return /Let's (Talk|Connect)!/i.test(element.textContent || '');
