@@ -707,7 +707,29 @@
   .secure-network-case__button { align-self: flex-start; min-height: 44px; margin-top: 2px; padding: 0 18px; border: 1px solid #4ce6a6; border-radius: 12px; background: #4ce6a6; color: #050505; font: inherit; font-size: 14px; font-weight: 500; line-height: 1.4; cursor: pointer; }
   .secure-network-case__button:hover, .secure-network-case__button:focus-visible, .secure-network-case.is-expanded .secure-network-case__button { background: #050505; color: #4ce6a6; outline: none; }
   .secure-network-customized > :not(:first-child):not(.secure-network-media-card):not(.secure-network-case), .secure-network-source-hidden { display: none !important; }
-  @media (max-width: 809.98px) { .secure-network-case { font-size: 15px; } .secure-network-case__grid { grid-template-columns: 1fr; } }
+  @media (max-width: 809.98px) {
+    html,
+    body,
+    #main,
+    [data-framer-root] {
+      max-width: 100% !important;
+      overflow-x: hidden !important;
+    }
+
+    .framer-3Jwkf .framer-19irn1u,
+    .framer-3Jwkf .framer-tw2tkn,
+    .framer-3Jwkf .framer-1641a0j,
+    .framer-3Jwkf .framer-5cf55b {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      left: auto !important;
+      right: auto !important;
+    }
+
+    .secure-network-case { font-size: 15px; }
+    .secure-network-case__grid { grid-template-columns: 1fr; }
+  }
 </style>
 <script>
 (() => {
@@ -741,7 +763,7 @@
       const caseStudy = document.createElement('section');
       caseStudy.className = 'secure-network-case';
       caseStudy.innerHTML = `
-        <p><strong>Secure Network & Access Management Platform</strong> was a responsive UX project for residential and shared-living environments. The work focused on helping residents connect devices, manage private network access, invite guests, share temporary permissions and resolve connectivity issues without needing to understand the underlying network infrastructure.</p>
+        <p><strong>Secure Network & Access Management Platform</strong> was a product design engagement for a resident-facing network and access-management platform in residential and shared-living environments. The work covered UI, UX, information architecture, interaction flows and responsive interface direction to help residents connect devices, manage private network access, invite guests, share temporary permissions and resolve connectivity issues without needing to understand the underlying network infrastructure.</p>
         <p>The product translated device identity, isolated private networks, digital access keys, role-based permissions and security restrictions into familiar actions centred around people, devices and access.</p>
         <p>I shaped the resident-facing experience from domain research and comparative analysis through information architecture, user journeys, interaction patterns, detailed wireframes and responsive interface direction. Administrative and operational workflows informed the resident experience, although only the resident-facing application is presented here.</p>
         <div class="secure-network-case__grid">

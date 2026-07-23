@@ -135,9 +135,9 @@ function ensureHomeProjectGrid(frameDocument) {
       href: '/private-projects/digital-payments-settlement-platform',
       category: 'PRIVATE CASE STUDIES',
       title: 'Show Other Projects',
-      image: '/assets/digital-payments-thumbnail.png',
-      srcset: '/assets/digital-payments-thumbnail.png',
-      alt: 'Digital Payments & Settlement Platform'
+      image: '/assets/private-projects-thumbnail.png',
+      srcset: '/assets/private-projects-thumbnail.png',
+      alt: 'Private case studies'
     }
   ];
 
@@ -204,7 +204,14 @@ function updatePrivateProjectThumbnail(frameDocument) {
   for (const card of privateCards) {
     const href = card.getAttribute('href') || '';
     const privatePath = card.getAttribute('data-private-case-path') || '';
-    const project = PRIVATE_PROJECTS.find((candidate) => {
+    const titleText = card.querySelector('.framer-1hd1k8e h3')?.textContent || '';
+    const isPrivateIndexCard = Boolean(card.getAttribute('data-private-project-id') || privatePath);
+    const project = !isPrivateIndexCard && /Show Other Projects/i.test(titleText)
+      ? {
+        thumbnail: '/assets/private-projects-thumbnail.png',
+        alt: 'Private case studies'
+      }
+      : PRIVATE_PROJECTS.find((candidate) => {
       return href.includes(candidate.indexPath)
         || href.includes(candidate.casePath)
         || privatePath === candidate.casePath
@@ -441,6 +448,35 @@ function tuneFramerFrame(
       main,
       [data-framer-root] {
         overflow-x: clip;
+      }
+
+      html,
+      body {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+      }
+
+      @media (max-width: 809.98px) {
+        html,
+        body,
+        #main,
+        [data-framer-root],
+        main {
+          width: 100% !important;
+          max-width: 100vw !important;
+          overflow-x: hidden !important;
+        }
+
+        section {
+          max-width: 100vw !important;
+        }
+
+        .framer-xm5nqp,
+        .framer-xm5nqp section,
+        .framer-xm5nqp ul {
+          max-width: 100% !important;
+          overflow: hidden !important;
+        }
       }
 
       .local-private-back-button {
@@ -687,9 +723,19 @@ function tuneFramerFrame(
     root?.style.setProperty('max-width', 'none', 'important');
     layout?.style.setProperty('width', '100%', 'important');
     layout?.style.setProperty('max-width', 'none', 'important');
-    main?.style.setProperty('width', 'auto', 'important');
-    main?.style.setProperty('max-width', 'none', 'important');
-    main?.style.setProperty('flex', '1 1 auto', 'important');
+    const isMobileFrame = (frameDocument.documentElement.clientWidth || 0) <= 809;
+
+    if (isMobileFrame) {
+      main?.style.setProperty('width', '100%', 'important');
+      main?.style.setProperty('max-width', '100%', 'important');
+      main?.style.setProperty('min-width', '0', 'important');
+      main?.style.setProperty('box-sizing', 'border-box', 'important');
+      main?.style.setProperty('flex', '1 1 0', 'important');
+    } else {
+      main?.style.setProperty('width', 'auto', 'important');
+      main?.style.setProperty('max-width', 'none', 'important');
+      main?.style.setProperty('flex', '1 1 auto', 'important');
+    }
 
     const bottomMediaBlock = frameDocument.querySelector('[data-framer-name="Heading + Paragraph"] > .framer-1kf03ng');
 
@@ -946,7 +992,9 @@ function App() {
 
   return (
     <>
-      {privateProjectPage && hasPrivateAccess && privateCaseStudyPage && privateHtml ? (
+      {privateProjectLocked ? (
+        <div className="framer-frame framer-frame--locked-placeholder" aria-hidden="true" />
+      ) : privateProjectPage && hasPrivateAccess && privateCaseStudyPage && privateHtml ? (
         <iframe
           key={`${window.location.pathname}-private`}
           className="framer-frame"
@@ -965,9 +1013,9 @@ function App() {
       ) : (
         <iframe
           key={window.location.pathname}
-          className={`framer-frame${privateProjectLocked ? ' framer-frame--locked' : ''}`}
+          className="framer-frame"
           title="Framed by Harsh clone"
-          src={privateProjectPage ? '/framer/projects.html' : currentFrame()}
+          src={currentFrame()}
           onLoad={(event) => tuneFramerFrameWhenReady(event.currentTarget, false, contactPage, homePage, path === '/')}
         />
       )}
