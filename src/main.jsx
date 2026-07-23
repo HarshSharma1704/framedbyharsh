@@ -143,6 +143,20 @@ function ensureHomeProjectGrid(frameDocument) {
   }
 }
 
+function updateFramedByHarshProjectLabel(frameDocument) {
+  const framedCards = [...frameDocument.querySelectorAll('a.framer-q6VTF')].filter((card) => {
+    const href = card.getAttribute('href') || '';
+    return href.includes('3d-web-portfolio');
+  });
+
+  for (const card of framedCards) {
+    const category = card.querySelector('.framer-1qv04uv p');
+    if (category) {
+      category.textContent = '3D Web Experience';
+    }
+  }
+}
+
 function tuneFramerFrame(frame, shouldFixPrivateLayout, shouldScrollToContact, shouldAlignHomeTalk, shouldExpandHomeProjects) {
   const frameDocument = frame.contentDocument;
 
@@ -201,6 +215,13 @@ function tuneFramerFrame(frame, shouldFixPrivateLayout, shouldScrollToContact, s
           display: flex !important;
           flex-direction: column !important;
           gap: 14px !important;
+        }
+
+        .framer-124fobe a.framer-q6VTF .framer-1jhy1kf-container,
+        .framer-15tq2a5 a.framer-q6VTF .framer-1jhy1kf-container {
+          display: none !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
         }
 
         .framer-124fobe a.framer-q6VTF .framer-14ikcuq,
@@ -358,6 +379,8 @@ function tuneFramerFrame(frame, shouldFixPrivateLayout, shouldScrollToContact, s
   if (shouldExpandHomeProjects) {
     ensureHomeProjectGrid(frameDocument);
   }
+
+  updateFramedByHarshProjectLabel(frameDocument);
 
   const talkSections = [...frameDocument.querySelectorAll('section, a, div')].filter((element) => {
     return /Let's (Talk|Connect)!/i.test(element.textContent || '');
