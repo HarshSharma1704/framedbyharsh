@@ -10,7 +10,7 @@ const PRIVATE_PROJECTS = [
     casePath: '/private-projects/digital-payments-settlement-platform/case-study',
     category: 'PRIVATE CASE STUDY',
     title: 'Digital Payments & Settlement Platform',
-    thumbnail: '/assets/digital-payments-thumbnail.png',
+    thumbnail: '/assets/digital-payments-thumbnail-optimized.jpg',
     alt: 'Digital Payments & Settlement Platform'
   },
   {
@@ -19,7 +19,7 @@ const PRIVATE_PROJECTS = [
     casePath: '/private-projects/secure-network-access-management-platform/case-study',
     category: 'PRIVATE CASE STUDY',
     title: 'Secure Network & Access Management Platform',
-    thumbnail: '/assets/private-projects-thumbnail.png',
+    thumbnail: '/assets/private-projects-thumbnail-optimized.jpg',
     alt: 'Secure Network & Access Management Platform'
   }
 ];
@@ -212,7 +212,7 @@ function updateHomeLocation(frameDocument) {
 }
 
 function localizeSharedAvatar(frameDocument) {
-  const avatarPath = '/assets/exgmAY0pNbi5k5hKzyCPy18og0M.jpg';
+  const avatarPath = '/assets/profile-avatar-thumb.jpg';
 
   for (const image of frameDocument.images) {
     if (!(image.src || image.srcset).includes('exgmAY0pNbi5k5hKzyCPy18og0M.jpg')) {
@@ -268,8 +268,8 @@ function ensureHomeProjectGrid(frameDocument) {
       href: '/private-projects/digital-payments-settlement-platform',
       category: 'PRIVATE CASE STUDIES',
       title: 'Show Other Projects',
-      image: '/assets/private-projects-thumbnail.png',
-      srcset: '/assets/private-projects-thumbnail.png',
+      image: '/assets/private-projects-thumbnail-optimized.jpg',
+      srcset: '/assets/private-projects-thumbnail-optimized.jpg',
       alt: 'Private case studies'
     }
   ];
@@ -341,7 +341,7 @@ function updatePrivateProjectThumbnail(frameDocument) {
     const isPrivateIndexCard = Boolean(card.getAttribute('data-private-project-id') || privatePath);
     const project = !isPrivateIndexCard && /Show Other Projects/i.test(titleText)
       ? {
-        thumbnail: '/assets/private-projects-thumbnail.png',
+        thumbnail: '/assets/private-projects-thumbnail-optimized.jpg',
         alt: 'Private case studies'
       }
       : PRIVATE_PROJECTS.find((candidate) => {
@@ -1087,7 +1087,7 @@ function tuneFramerFrame(
     if (isDigitalPaymentsProject) {
       const video = frameDocument.querySelector('.digital-payments-video-card video');
       if (video) {
-        video.poster = '/assets/digital-payments-thumbnail.png';
+        video.poster = '/assets/digital-payments-thumbnail-optimized.jpg';
         video.preload = 'metadata';
       }
     }
