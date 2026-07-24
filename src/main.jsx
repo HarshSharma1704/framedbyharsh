@@ -1,5 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { LockKeyhole } from 'lucide-react';
 import './styles.css';
 
 const PRIVATE_PROJECT_PATH = '/private-projects/digital-payments-settlement-platform';
@@ -478,11 +479,10 @@ function tunePrivateProjectsIndex(frameDocument, openPrivateCaseStudy) {
   frameDocument.documentElement.classList.add('local-private-index-page');
 
   const headings = [...frameDocument.querySelectorAll('h1, h2, p, div.framer-text')];
-  const pageTitle = headings.find((element) => /My Remarkable Projects/i.test(element.textContent || ''));
-
-  if (pageTitle) {
+  const pageTitles = headings.filter((element) => /My Remarkable Projects/i.test(element.textContent || ''));
+  pageTitles.forEach((pageTitle) => {
     pageTitle.textContent = 'Private Projects';
-  }
+  });
 
   const projectCards = [...frameDocument.querySelectorAll('a.framer-q6VTF')];
 
@@ -561,6 +561,79 @@ function updateProjectCard(frameDocument, card, project, variant = 'grid') {
   updatePrivateProjectThumbnail(frameDocument);
 }
 
+const PRIVATE_ICON_PATHS = {
+  '/': 'M224,120v96a8,8,0,0,1-8,8H160a8,8,0,0,1-8-8V164a4,4,0,0,0-4-4H108a4,4,0,0,0-4,4v52a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V120a16,16,0,0,1,4.69-11.31l80-80a16,16,0,0,1,22.62,0l80,80A16,16,0,0,1,224,120Z',
+  '/about': 'M172,120a44,44,0,1,1-44-44A44.05,44.05,0,0,1,172,120Zm60,8A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88.09,88.09,0,0,0-91.47-87.93C77.43,41.89,39.87,81.12,40,128.25a87.65,87.65,0,0,0,22.24,58.16A79.71,79.71,0,0,1,84,165.1a4,4,0,0,1,4.83.32,59.83,59.83,0,0,0,78.28,0,4,4,0,0,1,4.83-.32,79.71,79.71,0,0,1,21.79,21.31A87.62,87.62,0,0,0,216,128Z',
+  '/projects': 'M232,56V88a4,4,0,0,1-4,4H136V52a4,4,0,0,1,4-4h84A8,8,0,0,1,232,56Zm-4,52H184v44h44a4,4,0,0,0,4-4V112A4,4,0,0,0,228,108ZM88,152h80V108H88Zm-60,0H72V108H28a4,4,0,0,0-4,4v36A4,4,0,0,0,28,152Zm200,16H136v36a4,4,0,0,0,4,4h84a8,8,0,0,0,8-8V172A4,4,0,0,0,228,168ZM28,92h92V52a4,4,0,0,0-4-4H32a8,8,0,0,0-8,8V88A4,4,0,0,0,28,92Zm-4,80v28a8,8,0,0,0,8,8h84a4,4,0,0,0,4-4V168H28A4,4,0,0,0,24,172Z',
+  '/stack': 'M220,169.09l-92,53.65L36,169.09A8,8,0,0,0,28,182.91l96,56a8,8,0,0,0,8.06,0l96-56A8,8,0,1,0,220,169.09Z',
+  '/contact': 'M231.4,44.34s0,.1,0,.15l-58.2,191.94a15.88,15.88,0,0,1-14,11.51q-.69.06-1.38.06a15.86,15.86,0,0,1-14.42-9.15L107,164.15a4,4,0,0,1,.77-4.58l57.92-57.92a8,8,0,0,0-11.31-11.31L96.43,148.26a4,4,0,0,1-4.58.77L17.08,112.64a16,16,0,0,1,2.49-29.8l191.94-58.2.15,0A16,16,0,0,1,231.4,44.34Z',
+  linkedin: 'M216,24H40A16,16,0,0,0,24,40V216a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V40A16,16,0,0,0,216,24ZM96,176a8,8,0,0,1-16,0V112a8,8,0,0,1,16,0ZM88,96a12,12,0,1,1,12-12A12,12,0,0,1,88,96Zm96,80a8,8,0,0,1-16,0V140a20,20,0,0,0-40,0v36a8,8,0,0,1-16,0V112a8,8,0,0,1,15.79-1.78A36,36,0,0,1,184,140Z',
+  email: 'M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48ZM98.71,128,40,181.81V74.19Zm11.84,10.85,12,11.05a8,8,0,0,0,10.82,0l12-11.05,58,53.15H52.57ZM157.29,128,216,74.18V181.82Z',
+  left: 'M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z',
+  right: 'M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z'
+};
+
+function addPrivateRuntimeIcon(frameDocument, container, path, color = '#999') {
+  if (!container || container.querySelector('svg')) {
+    return;
+  }
+
+  const mount = container.querySelector(':scope > div[style*="display:contents"]') || container;
+  const svg = frameDocument.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  const shape = frameDocument.createElementNS('http://www.w3.org/2000/svg', 'path');
+  svg.setAttribute('viewBox', '0 0 256 256');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('focusable', 'false');
+  svg.style.cssText = `display:block;width:100%;height:100%;fill:${color};color:${color};`;
+  shape.setAttribute('d', path);
+  svg.append(shape);
+  mount.append(svg);
+}
+
+function restorePrivateRuntimePresentation(frameDocument) {
+  frameDocument.documentElement.classList.add('private-static-ready');
+
+  const animationCandidates = frameDocument.querySelectorAll(
+    '[data-framer-appear-id], section[style*="will-change:transform"][style*="opacity:0"], section[style*="will-change: transform"][style*="opacity: 0"]'
+  );
+  animationCandidates.forEach((element) => {
+    element.style.setProperty('opacity', '1', 'important');
+    element.style.setProperty('transform', 'none', 'important');
+    element.style.setProperty('will-change', 'auto', 'important');
+  });
+
+  frameDocument.querySelectorAll('.framer-m4gi18-container').forEach((container) => {
+    const anchor = container.closest('a[href]');
+    const href = anchor?.getAttribute('href') || '';
+    const iconKey = href.startsWith('https://www.linkedin.com')
+      ? 'linkedin'
+      : href.startsWith('mailto:')
+        ? 'email'
+        : href;
+    const path = PRIVATE_ICON_PATHS[iconKey];
+    if (path) {
+      addPrivateRuntimeIcon(frameDocument, container, path);
+    }
+  });
+
+  frameDocument.querySelectorAll('.framer-xbo92z-container').forEach((container) => {
+    const label = container.closest('a')?.textContent || '';
+    addPrivateRuntimeIcon(
+      frameDocument,
+      container,
+      /Back/i.test(label) ? PRIVATE_ICON_PATHS.left : PRIVATE_ICON_PATHS.right
+    );
+  });
+
+  frameDocument.querySelectorAll('.framer-1ar2v8m-container').forEach((container) => {
+    addPrivateRuntimeIcon(frameDocument, container, PRIVATE_ICON_PATHS.right, '#4ce6a6');
+  });
+
+  frameDocument.querySelectorAll('.framer-1tpcuds-container').forEach((container) => {
+    addPrivateRuntimeIcon(frameDocument, container, PRIVATE_ICON_PATHS.right, '#4ce6a6');
+  });
+}
+
 function tunePrivateCaseSuggestions(frameDocument, currentProjectId, openPrivateCaseStudy) {
   if (!currentProjectId || !openPrivateCaseStudy) {
     return;
@@ -571,9 +644,13 @@ function tunePrivateCaseSuggestions(frameDocument, currentProjectId, openPrivate
     return;
   }
 
+  section.classList.add('private-case-suggestions');
   section.classList.remove('digital-payments-source-hidden');
   section.style.removeProperty('display');
   section.style.removeProperty('visibility');
+  section.style.setProperty('opacity', '1', 'important');
+  section.style.setProperty('transform', 'none', 'important');
+  section.style.setProperty('will-change', 'auto', 'important');
 
   const suggestions = PRIVATE_PROJECTS.filter((project) => project.id !== currentProjectId).slice(0, 2);
   const cards = [...section.querySelectorAll('a.framer-UGeb1, a.framer-q6VTF')];
@@ -709,6 +786,37 @@ function tuneFramerFrame(
         display: none;
       }
 
+      .private-static-ready .framer-fb2w2l-container > section {
+        opacity: 1 !important;
+      }
+
+      .private-static-ready .framer-m4gi18-container svg,
+      .private-static-ready .framer-xbo92z-container svg,
+      .private-static-ready .framer-1ar2v8m-container svg,
+      .private-static-ready .framer-1tpcuds-container svg {
+        display: block !important;
+        width: 100% !important;
+        height: 100% !important;
+      }
+
+      .private-case-suggestions {
+        opacity: 1 !important;
+        transform: none !important;
+        will-change: auto !important;
+      }
+
+      .private-case-suggestions [data-private-project-id] .framer-1n88bwc-container {
+        opacity: 0 !important;
+        transform: translateX(-8px) !important;
+        transition: opacity 180ms ease, transform 220ms ease !important;
+      }
+
+      .private-case-suggestions [data-private-project-id]:hover .framer-1n88bwc-container,
+      .private-case-suggestions [data-private-project-id]:focus-visible .framer-1n88bwc-container {
+        opacity: 1 !important;
+        transform: none !important;
+      }
+
       @media (max-width: 809.98px) {
         .local-private-menu-open {
           overflow: hidden !important;
@@ -745,6 +853,37 @@ function tuneFramerFrame(
         .local-private-mobile-menu a:focus-visible {
           background: #1a1a1a;
           outline: none;
+        }
+
+        .private-static-ready main.framer-19irn1u {
+          flex: none !important;
+          width: 100% !important;
+          height: auto !important;
+          min-height: 0 !important;
+          overflow: visible !important;
+        }
+
+        .private-case-suggestions .framer-n2grfh {
+          display: grid !important;
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          gap: 12px !important;
+          width: 100% !important;
+          min-width: 0 !important;
+        }
+
+        .private-case-suggestions .framer-l0jniu-container,
+        .private-case-suggestions a.framer-UGeb1 {
+          width: 100% !important;
+          min-width: 0 !important;
+          max-width: 100% !important;
+        }
+
+        .private-case-suggestions a.framer-UGeb1 .framer-62y9jo,
+        .private-case-suggestions a.framer-UGeb1 .framer-11p7syy,
+        .private-case-suggestions a.framer-UGeb1 .framer-1yjn5x6 {
+          width: 100% !important;
+          min-width: 0 !important;
+          max-width: 100% !important;
         }
       }
 
@@ -972,7 +1111,10 @@ function tuneFramerFrame(
       main?.style.setProperty('max-width', '100%', 'important');
       main?.style.setProperty('min-width', '0', 'important');
       main?.style.setProperty('box-sizing', 'border-box', 'important');
-      main?.style.setProperty('flex', '1 1 0', 'important');
+      main?.style.setProperty('flex', 'none', 'important');
+      main?.style.setProperty('height', 'auto', 'important');
+      main?.style.setProperty('min-height', '0', 'important');
+      main?.style.setProperty('overflow', 'visible', 'important');
     } else {
       main?.style.setProperty('width', 'auto', 'important');
       main?.style.setProperty('max-width', 'none', 'important');
@@ -1094,6 +1236,7 @@ function tuneFramerFrame(
 
     tunePrivateCaseSuggestions(frameDocument, currentPrivateProjectId, openPrivateCaseStudy);
     ensurePrivateMobileMenu(frameDocument);
+    restorePrivateRuntimePresentation(frameDocument);
   }
 
   if (shouldScrollToContact) {
@@ -1119,6 +1262,7 @@ function tuneFramerFrame(
     tunePrivateProjectsIndex(frameDocument, openPrivateCaseStudy);
     ensurePrivateIndexBackButton(frameDocument);
     ensurePrivateMobileMenu(frameDocument);
+    restorePrivateRuntimePresentation(frameDocument);
   }
 
   updateFramedByHarshProjectLabel(frameDocument);
@@ -1519,7 +1663,8 @@ function App() {
             />
             {error ? <p className="private-gate__error">{error}</p> : null}
             <button className="private-gate__button" type="submit">
-              {isUnlocking ? 'Unlocking...' : 'Unlock Project'}
+              <LockKeyhole size={16} strokeWidth={1.75} aria-hidden="true" />
+              <span>{isUnlocking ? 'Unlocking...' : 'Unlock Project'}</span>
             </button>
           </form>
         </div>
