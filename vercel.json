@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/private-project.js": {
+      "includeFiles": "api/protected/**"
+    }
+  },
   "rewrites": [
     {
       "source": "/(.*)",

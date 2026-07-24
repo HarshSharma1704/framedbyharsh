@@ -1,11 +1,10 @@
 import { readFile } from 'node:fs/promises';
-import path from 'node:path';
 import { isValidPrivateProjectPassword, preparePrivateProjectHtml } from './private-html.js';
 
 const PASSWORD = process.env.PRIVATE_PROJECT_PASSWORD || 'accinternal';
 const PROJECT_FILES = {
-  'digital-payments-settlement-platform': path.join('api', 'protected', 'private-digital-payments-settlement-platform.html'),
-  'secure-network-access-management-platform': path.join('api', 'protected', 'private-secure-network-access-management-platform.html')
+  'digital-payments-settlement-platform': new URL('./protected/private-digital-payments-settlement-platform.html', import.meta.url),
+  'secure-network-access-management-platform': new URL('./protected/private-secure-network-access-management-platform.html', import.meta.url)
 };
 
 export default async function handler(request, response) {
@@ -34,8 +33,14 @@ export default async function handler(request, response) {
     return;
   }
 
-  const filePath = path.join(process.cwd(), projectFile);
-  const html = preparePrivateProjectHtml(await readFile(filePath, 'utf8'));
+  let html;
+  try {
+    html = preparePrivateProjectHtml(await readFile(projectFile, 'utf8'));
+  } catch (error) {
+    console.error('Unable to load protected project file', error);
+    response.status(500).json({ error: 'Unable to load private project' });
+    return;
+  }
 
   response.setHeader('Cache-Control', 'no-store, max-age=0');
   response.setHeader('Content-Type', 'text/html; charset=utf-8');
