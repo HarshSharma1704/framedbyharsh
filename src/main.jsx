@@ -1423,35 +1423,34 @@ function App() {
       return;
     }
 
-    const visibleImages = [...frameDocument.images].filter((image) => {
-      const bounds = image.getBoundingClientRect();
-      const styles = frameWindow.getComputedStyle(image);
-      return bounds.width > 0
-        && bounds.height > 0
-        && styles.display !== 'none'
-        && styles.visibility !== 'hidden';
-    });
-    const waitForImages = Promise.allSettled(visibleImages.map((image) => {
-      if (image.complete && image.naturalWidth > 0) {
-        return Promise.resolve();
+    const startedAt = window.performance.now();
+    const waitForVisibleImages = () => {
+      if (!frame.isConnected || frame.contentDocument !== frameDocument) {
+        return;
       }
 
-      if (typeof image.decode === 'function') {
-        return image.decode().catch(() => undefined);
-      }
-
-      return new Promise((resolve) => {
-        image.addEventListener('load', resolve, { once: true });
-        image.addEventListener('error', resolve, { once: true });
+      const visibleImages = [...frameDocument.images].filter((image) => {
+        const bounds = image.getBoundingClientRect();
+        const styles = frameWindow.getComputedStyle(image);
+        return bounds.width > 0
+          && bounds.height > 0
+          && styles.display !== 'none'
+          && styles.visibility !== 'hidden';
       });
-    }));
-    const timeout = new Promise((resolve) => window.setTimeout(resolve, 4000));
+      const imagesReady = visibleImages.every((image) => {
+        return image.complete && image.naturalWidth > 0;
+      });
+      const timedOut = window.performance.now() - startedAt >= 5000;
 
-    Promise.race([waitForImages, timeout]).then(() => {
-      if (frame.isConnected) {
+      if (imagesReady || timedOut) {
         window.requestAnimationFrame(() => setIsProjectTransitioning(false));
+        return;
       }
-    });
+
+      window.setTimeout(waitForVisibleImages, 100);
+    };
+
+    waitForVisibleImages();
   }, []);
 
   return (
