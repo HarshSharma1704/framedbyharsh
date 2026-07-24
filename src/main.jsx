@@ -27,32 +27,55 @@ const DIGITAL_PAYMENTS_VIDEO = '/assets/digital-payments-mockup.mp4';
 const DIGITAL_PAYMENTS_VIDEO_FALLBACK = 'https://framerusercontent.com/assets/STpgrtJgdEXcsv1nWF8ULluFG2s.mp4';
 
 const routes = new Map([
-  ['/', '/framer/home.html'],
-  ['/about', '/framer/about.html'],
-  ['/projects', '/framer/projects.html'],
-  ['/stack', '/framer/stack.html'],
-  ['/contact', '/framer/home.html#contact'],
-  ['/projects/3d-web-portfolio', '/framer/project-3d-web-portfolio.html'],
-  ['/projects/north-website-design-ui-ux', '/framer/project-north-website-design-ui-ux.html'],
-  ['/projects/vr-hospital-simulation', '/framer/project-vr-hospital-simulation.html']
+  ['/', '/pages/home.html'],
+  ['/about', '/pages/about.html'],
+  ['/projects', '/pages/projects.html'],
+  ['/stack', '/pages/stack.html'],
+  ['/contact', '/pages/home.html#contact'],
+  ['/projects/3d-web-portfolio', '/pages/project-3d-web-portfolio.html'],
+  ['/projects/north-website-design-ui-ux', '/pages/project-north-website-design-ui-ux.html'],
+  ['/projects/vr-hospital-simulation', '/pages/project-vr-hospital-simulation.html']
 ]);
 
-function currentFrame() {
-  const path = window.location.pathname.replace(/\/$/, '') || '/';
+const legacyPageRoutes = new Map([
+  ['/framer', '/'],
+  ['/framer/home', '/'],
+  ['/framer/home.html', '/'],
+  ['/framer/about', '/about'],
+  ['/framer/about.html', '/about'],
+  ['/framer/projects', '/projects'],
+  ['/framer/projects.html', '/projects'],
+  ['/framer/stack', '/stack'],
+  ['/framer/stack.html', '/stack'],
+  ['/pages/home.html', '/'],
+  ['/pages/about.html', '/about'],
+  ['/pages/projects.html', '/projects'],
+  ['/pages/stack.html', '/stack'],
+  ['/pages/project-3d-web-portfolio.html', '/projects/3d-web-portfolio'],
+  ['/pages/project-north-website-design-ui-ux.html', '/projects/north-website-design-ui-ux'],
+  ['/pages/project-vr-hospital-simulation.html', '/projects/vr-hospital-simulation']
+]);
+
+function normalizeAppPath(value) {
+  let path = (value || '/').split(/[?#]/, 1)[0].replace(/\/+$/, '') || '/';
+  path = legacyPageRoutes.get(path) || path;
+  return routes.has(path) || path.startsWith('/private-projects/') ? path : '/';
+}
+
+function currentFrame(path = normalizeAppPath(window.location.pathname)) {
   return routes.get(path) || routes.get('/');
 }
 
 function currentPath() {
-  return window.location.pathname.replace(/\/$/, '') || '/';
+  return normalizeAppPath(window.location.pathname);
 }
 
-function isPrivateProjectPath() {
-  const path = currentPath();
+function isPrivateProjectPath(path = currentPath()) {
   return path === PRIVATE_PROJECT_PATH || path.startsWith('/private-projects/');
 }
 
 function privateProjectById(projectId) {
-  return PRIVATE_PROJECTS.find((project) => project.id === projectId) || PRIVATE_PROJECTS[0];
+  return PRIVATE_PROJECTS.find((project) => project.id === projectId) || null;
 }
 
 function privateProjectByCasePath(path) {
@@ -61,6 +84,65 @@ function privateProjectByCasePath(path) {
 
 function isPrivateCaseStudyPath(path = currentPath()) {
   return Boolean(privateProjectByCasePath(path));
+}
+
+function resolveInternalRoute(rawHref, activePath = '/') {
+  if (!rawHref || rawHref.startsWith('#')) {
+    return null;
+  }
+
+  if (/^(mailto:|tel:|javascript:)/i.test(rawHref)) {
+    return null;
+  }
+
+  const hrefPath = rawHref
+    .split(/[?#]/, 1)[0]
+    .replace(/^\.?\//, '')
+    .replace(/^projects\//, '');
+  const publicProject = [
+    '3d-web-portfolio',
+    'north-website-design-ui-ux',
+    'vr-hospital-simulation'
+  ].find((slug) => hrefPath === slug);
+  if (publicProject) {
+    return `/projects/${publicProject}`;
+  }
+
+  const privateProject = PRIVATE_PROJECTS.find((project) => hrefPath === project.id);
+  if (privateProject) {
+    return privateProject.casePath;
+  }
+
+  if (rawHref === '../3dhome' || rawHref === '/3dhome') {
+    return '/projects/3d-web-portfolio';
+  }
+
+  let url;
+  try {
+    const routeBase = new URL(activePath === '/' ? '/' : `${activePath.replace(/\/+$/, '')}/`, window.location.origin);
+    url = new URL(rawHref, routeBase);
+  } catch {
+    return null;
+  }
+
+  if (url.origin !== window.location.origin) {
+    return null;
+  }
+
+  let path = url.pathname;
+  if (/^\/projects\/(3d-web-portfolio|north-website-design-ui-ux|vr-hospital-simulation)\/projects$/i.test(path)) {
+    path = '/projects';
+  }
+
+  if (/^\/projects\/(3d-web-portfolio|north-website-design-ui-ux|vr-hospital-simulation)$/i.test(path)) {
+    return normalizeAppPath(path);
+  }
+
+  if (/^\/(3d-web-portfolio|north-website-design-ui-ux|vr-hospital-simulation)$/i.test(path)) {
+    return normalizeAppPath(`/projects${path}`);
+  }
+
+  return normalizeAppPath(path);
 }
 
 function alignHomeTalkText(frameDocument) {
@@ -339,7 +421,9 @@ function tunePrivateProjectsIndex(frameDocument, openPrivateCaseStudy) {
         const selectedProject = privateProjectById(card.getAttribute('data-private-project-id'));
         event.preventDefault();
         event.stopImmediatePropagation();
-        openPrivateCaseStudy(selectedProject.id);
+        if (selectedProject) {
+          openPrivateCaseStudy(selectedProject.id);
+        }
       }, true);
     }
   });
@@ -407,7 +491,9 @@ function tunePrivateCaseSuggestions(frameDocument, currentProjectId, openPrivate
         const selectedProject = privateProjectById(card.getAttribute('data-private-project-id'));
         event.preventDefault();
         event.stopImmediatePropagation();
-        openPrivateCaseStudy(selectedProject.id);
+        if (selectedProject) {
+          openPrivateCaseStudy(selectedProject.id);
+        }
       }, true);
     }
   });
@@ -428,6 +514,10 @@ function tuneFramerFrame(
   if (!frameDocument) {
     return;
   }
+
+  frameDocument.querySelectorAll(
+    '#__framer-badge-container, [id*="framer-badge"], [class*="framer-badge"], [data-framer-badge]'
+  ).forEach((badge) => badge.remove());
 
   if (!frameDocument.getElementById('local-global-framer-fixes')) {
     const style = frameDocument.createElement('style');
@@ -715,6 +805,7 @@ function tuneFramerFrame(
   }
 
   if (shouldFixPrivateLayout) {
+    const isDigitalPaymentsProject = currentPrivateProjectId === PRIVATE_PROJECTS[0].id;
     const root = frameDocument.querySelector('[data-framer-root]');
     const layout = frameDocument.querySelector('.framer-wdnrd6');
     const main = frameDocument.querySelector('main');
@@ -739,9 +830,11 @@ function tuneFramerFrame(
 
     const bottomMediaBlock = frameDocument.querySelector('[data-framer-name="Heading + Paragraph"] > .framer-1kf03ng');
 
-    bottomMediaBlock?.style.setProperty('display', 'none', 'important');
+    if (isDigitalPaymentsProject) {
+      bottomMediaBlock?.style.setProperty('display', 'none', 'important');
+    }
 
-    if (!frameDocument.getElementById('digital-payments-video-style')) {
+    if (isDigitalPaymentsProject && !frameDocument.getElementById('digital-payments-video-style')) {
       const style = frameDocument.createElement('style');
       style.id = 'digital-payments-video-style';
       style.textContent = `
@@ -808,7 +901,7 @@ function tuneFramerFrame(
       frameDocument.head.append(style);
     }
 
-    if (!frameDocument.querySelector('.digital-payments-video-card')) {
+    if (isDigitalPaymentsProject && !frameDocument.querySelector('.digital-payments-video-card')) {
       const article = frameDocument.querySelector('[data-framer-name="Heading + Paragraph"]');
       const heading = article?.firstElementChild;
 
@@ -896,8 +989,13 @@ function tuneFramerFrameWhenReady(
   currentPrivateProjectId = null
 ) {
   let attempts = 0;
+  const initialDocument = frame.contentDocument;
 
   function tune() {
+    if (!frame.isConnected || frame.contentDocument !== initialDocument) {
+      return;
+    }
+
     attempts += 1;
     tuneFramerFrame(
       frame,
@@ -915,22 +1013,63 @@ function tuneFramerFrameWhenReady(
     }
   }
 
-  window.setTimeout(tune, 1500);
+  window.setTimeout(tune, 0);
 }
 
 function App() {
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
   const [hasPrivateAccess, setHasPrivateAccess] = React.useState(false);
-  const [privateHtml, setPrivateHtml] = React.useState('');
+  const [privateDocuments, setPrivateDocuments] = React.useState({});
+  const [privateIndexHtml, setPrivateIndexHtml] = React.useState('');
   const [isUnlocking, setIsUnlocking] = React.useState(false);
-  const path = currentPath();
-  const privateProjectPage = isPrivateProjectPath();
+  const [path, setPath] = React.useState(currentPath);
+  const requestSequence = React.useRef(0);
+  const privateProjectPage = isPrivateProjectPath(path);
   const privateCaseProject = privateProjectByCasePath(path);
   const privateCaseStudyPage = isPrivateCaseStudyPath(path);
   const privateProjectLocked = privateProjectPage && !hasPrivateAccess;
   const contactPage = path === '/contact';
   const homePage = path === '/' || contactPage;
+  const matchingPrivateDocument = privateCaseProject ? privateDocuments[privateCaseProject.id] : null;
+
+  const navigateTo = React.useCallback((nextValue, options = {}) => {
+    const nextPath = normalizeAppPath(nextValue);
+    const currentBrowserPath = window.location.pathname.replace(/\/+$/, '') || '/';
+
+    if (currentBrowserPath !== nextPath) {
+      window.history[options.replace ? 'replaceState' : 'pushState']({}, '', nextPath);
+    }
+
+    setPath(nextPath);
+  }, []);
+
+  React.useEffect(() => {
+    const normalizedInitialPath = currentPath();
+    const browserPath = window.location.pathname.replace(/\/+$/, '') || '/';
+    if (browserPath !== normalizedInitialPath) {
+      window.history.replaceState({}, '', normalizedInitialPath);
+    }
+
+    const handlePopState = () => setPath(currentPath());
+    const handleFrameNavigation = (event) => {
+      if (event.origin !== window.location.origin || event.data?.type !== 'portfolio:navigate') {
+        return;
+      }
+
+      const nextPath = resolveInternalRoute(event.data.href, path);
+      if (nextPath) {
+        navigateTo(nextPath);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('message', handleFrameNavigation);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('message', handleFrameNavigation);
+    };
+  }, [navigateTo, path]);
 
   async function requestPrivateCaseStudyHtml(projectId = PRIVATE_PROJECTS[0].id) {
     const result = await fetch('/api/private-project', {
@@ -946,25 +1085,41 @@ function App() {
     return result.text();
   }
 
-  async function fetchPrivateCaseStudy(projectId = PRIVATE_PROJECTS[0].id) {
-    setPrivateHtml(await requestPrivateCaseStudyHtml(projectId));
-  }
-
   async function openPrivateCaseStudy(projectId = PRIVATE_PROJECTS[0].id) {
     const project = privateProjectById(projectId);
+    if (!project) {
+      setError('Unable to open project.');
+      return;
+    }
+
+    const requestId = ++requestSequence.current;
     setIsUnlocking(true);
     setError('');
 
     try {
-      await fetchPrivateCaseStudy(project.id);
+      const html = await requestPrivateCaseStudyHtml(project.id);
+      if (requestId !== requestSequence.current) {
+        return;
+      }
+
+      setPrivateDocuments((documents) => ({
+        ...documents,
+        [project.id]: { projectId: project.id, html }
+      }));
       setHasPrivateAccess(true);
-      window.history.pushState({}, '', project.casePath);
+      navigateTo(project.casePath);
     } catch {
+      if (requestId !== requestSequence.current) {
+        return;
+      }
+
       setError('Unable to open project. Please enter the password again.');
       setHasPrivateAccess(false);
-      setPrivateHtml('');
+      setPrivateDocuments({});
     } finally {
-      setIsUnlocking(false);
+      if (requestId === requestSequence.current) {
+        setIsUnlocking(false);
+      }
     }
   }
 
@@ -975,10 +1130,21 @@ function App() {
 
     try {
       if (privateCaseStudyPage) {
-        await fetchPrivateCaseStudy(privateCaseProject?.id || PRIVATE_PROJECTS[0].id);
+        if (!privateCaseProject) {
+          throw new Error('Unknown private project');
+        }
+
+        const [html, indexHtml] = await Promise.all([
+          requestPrivateCaseStudyHtml(privateCaseProject.id),
+          requestPrivateCaseStudyHtml('private-index')
+        ]);
+        setPrivateDocuments((documents) => ({
+          ...documents,
+          [privateCaseProject.id]: { projectId: privateCaseProject.id, html }
+        }));
+        setPrivateIndexHtml(indexHtml);
       } else {
-        await requestPrivateCaseStudyHtml();
-        setPrivateHtml('');
+        setPrivateIndexHtml(await requestPrivateCaseStudyHtml('private-index'));
       }
 
       setHasPrivateAccess(true);
@@ -994,28 +1160,30 @@ function App() {
     <>
       {privateProjectLocked ? (
         <div className="framer-frame framer-frame--locked-placeholder" aria-hidden="true" />
-      ) : privateProjectPage && hasPrivateAccess && privateCaseStudyPage && privateHtml ? (
+      ) : privateProjectPage && hasPrivateAccess && privateCaseStudyPage && matchingPrivateDocument ? (
         <iframe
-          key={`${window.location.pathname}-private`}
+          key={`${privateCaseProject.id}-private`}
           className="framer-frame"
           title="Framed by Harsh private project"
-          srcDoc={privateHtml}
+          srcDoc={matchingPrivateDocument.html}
           onLoad={(event) => tuneFramerFrameWhenReady(event.currentTarget, true, false, false, false, false, openPrivateCaseStudy, privateCaseProject?.id)}
         />
-      ) : privateProjectPage && hasPrivateAccess ? (
+      ) : privateProjectPage && hasPrivateAccess && privateIndexHtml ? (
         <iframe
-          key={`${window.location.pathname}-private-index`}
+          key="private-index"
           className="framer-frame"
           title="Framed by Harsh private projects"
-          src="/framer/projects.html"
+          srcDoc={privateIndexHtml}
           onLoad={(event) => tuneFramerFrameWhenReady(event.currentTarget, false, false, false, false, true, openPrivateCaseStudy)}
         />
+      ) : privateProjectPage && hasPrivateAccess ? (
+        <div className="framer-frame framer-frame--locked-placeholder" aria-hidden="true" />
       ) : (
         <iframe
-          key={window.location.pathname}
+          key={path}
           className="framer-frame"
           title="Framed by Harsh clone"
-          src={currentFrame()}
+          src={currentFrame(path)}
           onLoad={(event) => tuneFramerFrameWhenReady(event.currentTarget, false, contactPage, homePage, path === '/')}
         />
       )}

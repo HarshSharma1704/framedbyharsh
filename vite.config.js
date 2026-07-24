@@ -2,10 +2,12 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { preparePrivateProjectHtml } from './api/private-html.js';
 
 const projectFiles = {
-  'digital-payments-settlement-platform': 'private-digital-payments-settlement-platform.html',
-  'secure-network-access-management-platform': 'private-secure-network-access-management-platform.html'
+  'private-index': path.join('public', 'pages', 'projects.html'),
+  'digital-payments-settlement-platform': path.join('api', 'protected', 'private-digital-payments-settlement-platform.html'),
+  'secure-network-access-management-platform': path.join('api', 'protected', 'private-secure-network-access-management-platform.html')
 };
 
 function privateProjectApi() {
@@ -40,9 +42,16 @@ function privateProjectApi() {
             return;
           }
 
-          const projectFile = projectFiles[body.project] || projectFiles['digital-payments-settlement-platform'];
-          const filePath = path.join(server.config.root, 'api', 'protected', projectFile);
-          const html = await readFile(filePath, 'utf8');
+          const projectFile = projectFiles[body.project];
+          if (!projectFile) {
+            response.statusCode = 400;
+            response.setHeader('Content-Type', 'application/json');
+            response.end(JSON.stringify({ error: 'Unknown private project' }));
+            return;
+          }
+
+          const filePath = path.join(server.config.root, projectFile);
+          const html = preparePrivateProjectHtml(await readFile(filePath, 'utf8'));
           response.statusCode = 200;
           response.setHeader('Cache-Control', 'no-store, max-age=0');
           response.setHeader('Content-Type', 'text/html; charset=utf-8');

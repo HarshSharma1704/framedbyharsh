@@ -24,8 +24,7 @@
     <meta name="twitter:image" content="https://framerusercontent.com/images/hZX90StWF97doOPrtpdWgJvGMI.png">
 	
 	
-	<script>try{if(localStorage.getItem("__framer_force_showing_editorbar_since")){const n=document.createElement("link");n.rel="modulepreload";n.href="https://framer.com/edit/init.mjs";document.head.appendChild(n)}}catch(e){}</script>
-	<link rel="canonical" href="/stack" target="_top"><meta property="og:url" content="https://framedbyharsh.framer.ai/stack"><!-- Start of headStart -->
+	<link rel="canonical" href="/stack" target="_top"><!-- Start of headStart -->
     
     <!-- End of headStart -->
 	
@@ -654,18 +653,21 @@
         }
       }
     </style><script>
-      window.addEventListener('click', function(event) {
+      function handlePortfolioNavigation(event) {
         const anchor = event.target && event.target.closest ? event.target.closest('a[href]') : null;
         if (!anchor) return;
         const href = anchor.getAttribute('href');
         if (!href || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('https://www.linkedin.com')) return;
         if (href.startsWith('/') || href.startsWith('./') || href.startsWith('../')) {
-          const target = href.startsWith('/') ? href : new URL(href, window.location.href).pathname;
           event.preventDefault();
           event.stopImmediatePropagation();
-          window.top.location.href = target;
+          if (event.type === 'pointerdown' || event.detail === 0) {
+            window.top.postMessage({ type: 'portfolio:navigate', href }, window.location.origin);
+          }
         }
-      }, true);
+      }
+      window.addEventListener('pointerdown', handlePortfolioNavigation, true);
+      window.addEventListener('click', handlePortfolioNavigation, true);
     </script></head>
 <body>
 	<script async src="https://events.framer.com/script?v=2" data-fid="801cf813cc473278a46842553c4c0877687a86f07e2ee97cbe5c78e249927105" data-no-nt></script>

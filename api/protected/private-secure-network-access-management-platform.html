@@ -6,7 +6,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width">
 	<meta name="generator" content="Framer da191f6">
-	<title>Digital Payments &amp; Settlement Platform - Private Projects</title>
+	<title>Secure Network &amp; Access Management Platform - Private Projects</title>
     <meta name="description" content="Welcome to the portfolio showcase of an innovative Mixed Reality and UI UX Designer, dedicated to curating  immersive and engaging experiences. Unreal | Unity | AR VR">
     <meta name="framer-search-index" content="https://framerusercontent.com/sites/6JN97L0s1Bv9wGFZm3lnYx/searchIndex-9WMMDBWxSh6B.json">
     <meta name="framer-search-index-fallback" content="https://framerusercontent.com/sites/6JN97L0s1Bv9wGFZm3lnYx/searchIndex-MwkMODgr5pao.json">
@@ -14,18 +14,17 @@
     <link href="https://framerusercontent.com/images/xHGCoOJUGNqcnWi6wNShPXynA.png" rel="icon" media="(prefers-color-scheme: dark)">
     <!-- Open Graph -->
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Digital Payments &amp; Settlement Platform - Private Projects">
+    <meta property="og:title" content="Secure Network &amp; Access Management Platform - Private Projects">
     <meta property="og:description" content="Welcome to the portfolio showcase of an innovative Mixed Reality and UI UX Designer, dedicated to curating  immersive and engaging experiences. Unreal | Unity | AR VR">
     <meta property="og:image" content="https://framerusercontent.com/images/hZX90StWF97doOPrtpdWgJvGMI.png">
     <!-- X -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Digital Payments &amp; Settlement Platform - Private Projects">
+    <meta name="twitter:title" content="Secure Network &amp; Access Management Platform - Private Projects">
     <meta name="twitter:description" content="Welcome to the portfolio showcase of an innovative Mixed Reality and UI UX Designer, dedicated to curating  immersive and engaging experiences. Unreal | Unity | AR VR">
     <meta name="twitter:image" content="https://framerusercontent.com/images/hZX90StWF97doOPrtpdWgJvGMI.png">
 	
 	
-	<script>try{if(localStorage.getItem("__framer_force_showing_editorbar_since")){const n=document.createElement("link");n.rel="modulepreload";n.href="https://framer.com/edit/init.mjs";document.head.appendChild(n)}}catch(e){}</script>
-	<link rel="canonical" href="/private-projects/digital-payments-settlement-platform" target="_top"><meta property="og:url" content="https://framedbyharsh.framer.ai/private-projects/digital-payments-settlement-platform"><!-- Start of headStart -->
+	<link rel="canonical" href="/private-projects/secure-network-access-management-platform" target="_top"><!-- Start of headStart -->
     
     <!-- End of headStart -->
 	
@@ -654,18 +653,21 @@
         }
       }
     </style><script>
-      window.addEventListener('click', function(event) {
+      function handlePortfolioNavigation(event) {
         const anchor = event.target && event.target.closest ? event.target.closest('a[href]') : null;
         if (!anchor) return;
         const href = anchor.getAttribute('href');
         if (!href || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('https://www.linkedin.com')) return;
         if (href.startsWith('/') || href.startsWith('./') || href.startsWith('../')) {
-          const target = href.startsWith('/') ? href : new URL(href, window.location.href).pathname;
           event.preventDefault();
           event.stopImmediatePropagation();
-          window.top.location.href = target;
+          if (event.type === 'pointerdown' || event.detail === 0) {
+            window.top.postMessage({ type: 'portfolio:navigate', href }, window.location.origin);
+          }
         }
-      }, true);
+      }
+      window.addEventListener('pointerdown', handlePortfolioNavigation, true);
+      window.addEventListener('click', handlePortfolioNavigation, true);
     </script></head>
 <body>
 	<script async src="https://events.framer.com/script?v=2" data-fid="801cf813cc473278a46842553c4c0877687a86f07e2ee97cbe5c78e249927105" data-no-nt></script>
@@ -831,6 +833,7 @@
     }
   }
 
+  customizeProject();
   window.addEventListener('load', () => {
     customizeProject();
     window.setTimeout(customizeProject, 1500);
