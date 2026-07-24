@@ -191,6 +191,21 @@ function alignHomeTalkText(frameDocument) {
   return true;
 }
 
+function updateHomeLocation(frameDocument) {
+  const walker = frameDocument.createTreeWalker(
+    frameDocument.body,
+    NodeFilter.SHOW_TEXT
+  );
+
+  let textNode = walker.nextNode();
+  while (textNode) {
+    if (textNode.nodeValue?.includes('Ahmedabad, India')) {
+      textNode.nodeValue = textNode.nodeValue.replaceAll('Ahmedabad, India', 'Bangalore, India');
+    }
+    textNode = walker.nextNode();
+  }
+}
+
 function ensureHomeProjectGrid(frameDocument) {
   const grid = [...frameDocument.querySelectorAll('.framer-15tq2a5')].find((candidate) => {
     const rect = candidate.getBoundingClientRect();
@@ -957,6 +972,7 @@ function tuneFramerFrame(
   }
 
   if (shouldAlignHomeTalk) {
+    updateHomeLocation(frameDocument);
     alignHomeTalkText(frameDocument);
   }
 
