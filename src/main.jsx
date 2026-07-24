@@ -219,8 +219,12 @@ function localizeSharedAvatar(frameDocument) {
       continue;
     }
 
-    image.src = avatarPath;
-    image.srcset = avatarPath;
+    if (image.getAttribute('src') !== avatarPath) {
+      image.src = avatarPath;
+    }
+    if (image.getAttribute('srcset') !== avatarPath) {
+      image.srcset = avatarPath;
+    }
     image.loading = 'eager';
     image.decoding = 'async';
   }
@@ -351,8 +355,12 @@ function updatePrivateProjectThumbnail(frameDocument) {
       continue;
     }
 
-    image.src = project.thumbnail;
-    image.srcset = project.thumbnail;
+    if (image.getAttribute('src') !== project.thumbnail) {
+      image.src = project.thumbnail;
+    }
+    if (image.getAttribute('srcset') !== project.thumbnail) {
+      image.srcset = project.thumbnail;
+    }
     image.alt = project.alt;
     image.loading = 'eager';
     image.decoding = 'async';
@@ -539,8 +547,12 @@ function updateProjectCard(frameDocument, card, project, variant = 'grid') {
   }
 
   if (image) {
-    image.src = project.thumbnail;
-    image.srcset = project.thumbnail;
+    if (image.getAttribute('src') !== project.thumbnail) {
+      image.src = project.thumbnail;
+    }
+    if (image.getAttribute('srcset') !== project.thumbnail) {
+      image.srcset = project.thumbnail;
+    }
     image.alt = project.alt;
     image.loading = 'eager';
     image.decoding = 'async';
@@ -1433,7 +1445,7 @@ function App() {
         image.addEventListener('error', resolve, { once: true });
       });
     }));
-    const timeout = new Promise((resolve) => window.setTimeout(resolve, 1500));
+    const timeout = new Promise((resolve) => window.setTimeout(resolve, 4000));
 
     Promise.race([waitForImages, timeout]).then(() => {
       if (frame.isConnected) {
