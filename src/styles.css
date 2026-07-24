@@ -28,6 +28,35 @@ body,
   background: #050505;
 }
 
+.private-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  overflow: hidden;
+  pointer-events: all;
+  background: #050505;
+}
+
+.private-transition__bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 34%;
+  height: 2px;
+  background: #4ce6a6;
+  animation: private-transition-progress 0.9s ease-in-out infinite;
+}
+
+@keyframes private-transition-progress {
+  from {
+    transform: translateX(-110%);
+  }
+
+  to {
+    transform: translateX(400%);
+  }
+}
+
 .private-gate {
   position: fixed;
   inset: 0;

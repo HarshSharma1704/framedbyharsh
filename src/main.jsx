@@ -151,10 +151,15 @@ async function fetchPrivateIndexHtml() {
     throw new Error('Unable to load private projects');
   }
 
-  return (await response.text()).replace(
-    /<script\b[^>]*data-framer-bundle="main"[^>]*>[\s\S]*?<\/script>/gi,
-    ''
-  );
+  return (await response.text())
+    .replace(
+      /<script\b[^>]*data-framer-bundle="main"[^>]*>[\s\S]*?<\/script>/gi,
+      ''
+    )
+    .replace(
+      /window\.top\.postMessage\(\{ type: 'portfolio:navigate', href \}, window\.location\.origin\);/g,
+      "window.top.postMessage({ type: 'portfolio:navigate', href }, '*');"
+    );
 }
 
 function alignHomeTalkText(frameDocument) {
@@ -203,6 +208,21 @@ function updateHomeLocation(frameDocument) {
       textNode.nodeValue = textNode.nodeValue.replaceAll('Ahmedabad, India', 'Bangalore, India');
     }
     textNode = walker.nextNode();
+  }
+}
+
+function localizeSharedAvatar(frameDocument) {
+  const avatarPath = '/assets/exgmAY0pNbi5k5hKzyCPy18og0M.jpg';
+
+  for (const image of frameDocument.images) {
+    if (!(image.src || image.srcset).includes('exgmAY0pNbi5k5hKzyCPy18og0M.jpg')) {
+      continue;
+    }
+
+    image.src = avatarPath;
+    image.srcset = avatarPath;
+    image.loading = 'eager';
+    image.decoding = 'async';
   }
 }
 
@@ -334,6 +354,9 @@ function updatePrivateProjectThumbnail(frameDocument) {
     image.src = project.thumbnail;
     image.srcset = project.thumbnail;
     image.alt = project.alt;
+    image.loading = 'eager';
+    image.decoding = 'async';
+    image.fetchPriority = 'high';
   }
 }
 
@@ -399,6 +422,48 @@ function ensurePrivateIndexBackButton(frameDocument) {
   button.target = '_top';
   button.innerHTML = '<span aria-hidden="true">&larr;</span><span>Back to all projects</span>';
   host.insertBefore(button, section);
+}
+
+function ensurePrivateMobileMenu(frameDocument) {
+  const hamburger = frameDocument.querySelector('[data-framer-name="Hamburger Menu"]');
+  if (!hamburger) {
+    return;
+  }
+
+  let menu = frameDocument.querySelector('.local-private-mobile-menu');
+  if (!menu) {
+    menu = frameDocument.createElement('nav');
+    menu.className = 'local-private-mobile-menu';
+    menu.setAttribute('aria-label', 'Mobile navigation');
+    menu.innerHTML = `
+      <a href="/">Home</a>
+      <a href="/about">About</a>
+      <a href="/projects">Projects</a>
+      <a href="/stack">Stack</a>
+      <a href="/contact">Contact</a>
+    `;
+    frameDocument.body.append(menu);
+  }
+
+  hamburger.setAttribute('role', 'button');
+  hamburger.setAttribute('aria-label', 'Toggle navigation');
+  hamburger.setAttribute('aria-expanded', 'false');
+
+  if (!hamburger.dataset.localMenuBound) {
+    hamburger.dataset.localMenuBound = 'true';
+    const toggleMenu = () => {
+      const isOpen = frameDocument.documentElement.classList.toggle('local-private-menu-open');
+      hamburger.setAttribute('aria-expanded', String(isOpen));
+    };
+
+    hamburger.addEventListener('click', toggleMenu);
+    hamburger.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        toggleMenu();
+      }
+    });
+  }
 }
 
 function tunePrivateProjectsIndex(frameDocument, openPrivateCaseStudy) {
@@ -477,6 +542,8 @@ function updateProjectCard(frameDocument, card, project, variant = 'grid') {
     image.src = project.thumbnail;
     image.srcset = project.thumbnail;
     image.alt = project.alt;
+    image.loading = 'eager';
+    image.decoding = 'async';
   }
 
   updatePrivateProjectThumbnail(frameDocument);
@@ -543,8 +610,9 @@ function tuneFramerFrame(
   }
 
   frameDocument.querySelectorAll(
-    '#__framer-badge-container, [id*="framer-badge"], [class*="framer-badge"], [data-framer-badge]'
+    '#__framer-badge-container, [id*="framer-badge"], [class*="framer-badge"], [data-framer-badge], a[href^="https://www.framer.com"]'
   ).forEach((badge) => badge.remove());
+  localizeSharedAvatar(frameDocument);
 
   if (!frameDocument.getElementById('local-global-framer-fixes')) {
     const style = frameDocument.createElement('style');
@@ -554,6 +622,7 @@ function tuneFramerFrame(
       [id*="framer-badge"],
       [class*="framer-badge"],
       [data-framer-badge],
+      a[href^="https://www.framer.com"],
       a[href*="framer.com"][style*="fixed"] {
         display: none !important;
         opacity: 0 !important;
@@ -622,6 +691,49 @@ function tuneFramerFrame(
 
       .local-private-back-button:hover {
         background: var(--token-fca815f1-c168-4500-ab2f-4b352d862cd9, rgb(26, 26, 26));
+      }
+
+      .local-private-mobile-menu {
+        display: none;
+      }
+
+      @media (max-width: 809.98px) {
+        .local-private-menu-open {
+          overflow: hidden !important;
+        }
+
+        .local-private-menu-open .local-private-mobile-menu {
+          position: fixed;
+          inset: 72px 0 0;
+          z-index: 2147480000;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          padding: 18px 24px 32px;
+          overflow-y: auto;
+          background: #050505;
+          border-top: 1px solid rgba(230, 230, 230, 0.1);
+        }
+
+        .local-private-mobile-menu a {
+          display: flex;
+          align-items: center;
+          min-height: 52px;
+          padding: 0 14px;
+          border-radius: 8px;
+          color: #e6e6e6;
+          font-family: Inter, "Inter Placeholder", sans-serif;
+          font-size: 16px;
+          font-weight: 400;
+          line-height: 1.2;
+          text-decoration: none;
+        }
+
+        .local-private-mobile-menu a:hover,
+        .local-private-mobile-menu a:focus-visible {
+          background: #1a1a1a;
+          outline: none;
+        }
       }
 
       .local-private-index-page .framer-124fobe a.framer-q6VTF .framer-1pby2nn {
@@ -858,7 +970,9 @@ function tuneFramerFrame(
     const bottomMediaBlock = frameDocument.querySelector('[data-framer-name="Heading + Paragraph"] > .framer-1kf03ng');
 
     if (isDigitalPaymentsProject) {
-      bottomMediaBlock?.style.setProperty('display', 'none', 'important');
+      bottomMediaBlock?.remove();
+    } else {
+      frameDocument.querySelectorAll('video').forEach((video) => video.remove());
     }
 
     if (isDigitalPaymentsProject && !frameDocument.getElementById('digital-payments-video-style')) {
@@ -958,7 +1072,16 @@ function tuneFramerFrame(
       }
     }
 
+    if (isDigitalPaymentsProject) {
+      const video = frameDocument.querySelector('.digital-payments-video-card video');
+      if (video) {
+        video.poster = '/assets/digital-payments-thumbnail.png';
+        video.preload = 'metadata';
+      }
+    }
+
     tunePrivateCaseSuggestions(frameDocument, currentPrivateProjectId, openPrivateCaseStudy);
+    ensurePrivateMobileMenu(frameDocument);
   }
 
   if (shouldScrollToContact) {
@@ -983,6 +1106,7 @@ function tuneFramerFrame(
   if (shouldTunePrivateIndex && openPrivateCaseStudy) {
     tunePrivateProjectsIndex(frameDocument, openPrivateCaseStudy);
     ensurePrivateIndexBackButton(frameDocument);
+    ensurePrivateMobileMenu(frameDocument);
   }
 
   updateFramedByHarshProjectLabel(frameDocument);
@@ -1014,13 +1138,66 @@ function tuneFramerFrameWhenReady(
   shouldExpandHomeProjects = false,
   shouldTunePrivateIndex = false,
   openPrivateCaseStudy = null,
-  currentPrivateProjectId = null
+  currentPrivateProjectId = null,
+  onFirstTune = null
 ) {
+  const tuneKey = [
+    shouldFixPrivateLayout,
+    shouldScrollToContact,
+    shouldAlignHomeTalk,
+    shouldExpandHomeProjects,
+    shouldTunePrivateIndex,
+    currentPrivateProjectId || ''
+  ].join(':');
+  if (frame.__portfolioTuneKey === tuneKey) {
+    return;
+  }
+  frame.__portfolioTuneKey = tuneKey;
+
   let attempts = 0;
-  const initialDocument = frame.contentDocument;
+  let readinessAttempts = 0;
+  let initialDocument = null;
+  let didNotify = false;
+  let lastPublicElementCount = -1;
+  let stablePublicChecks = 0;
 
   function tune() {
-    if (!frame.isConnected || frame.contentDocument !== initialDocument) {
+    if (!frame.isConnected) {
+      return;
+    }
+
+    const frameDocument = frame.contentDocument;
+    const frameRoot = frameDocument?.querySelector('[data-framer-root]');
+    const isPrivateFrame = shouldFixPrivateLayout || shouldTunePrivateIndex;
+    let publicHydrationReady = isPrivateFrame;
+
+    if (frameDocument?.body && frameRoot && !isPrivateFrame) {
+      const main = frameDocument.querySelector('#main');
+      const hasReactContainer = main && Object.keys(main).some((key) => key.startsWith('__reactContainer$'));
+      const hasReactFiber = Object.keys(frameRoot).some((key) => key.startsWith('__reactFiber$'));
+      const elementCount = frameRoot.querySelectorAll('*').length;
+
+      if (hasReactContainer && hasReactFiber && elementCount === lastPublicElementCount) {
+        stablePublicChecks += 1;
+      } else {
+        stablePublicChecks = 0;
+      }
+      lastPublicElementCount = elementCount;
+      publicHydrationReady = stablePublicChecks >= 2 || readinessAttempts >= 60;
+    }
+
+    const frameReady = frameDocument?.body && frameRoot && publicHydrationReady;
+    if (!frameReady) {
+      readinessAttempts += 1;
+      if (readinessAttempts < 200) {
+        window.setTimeout(tune, 50);
+      }
+      return;
+    }
+
+    if (!initialDocument) {
+      initialDocument = frameDocument;
+    } else if (frameDocument !== initialDocument) {
       return;
     }
 
@@ -1035,6 +1212,11 @@ function tuneFramerFrameWhenReady(
       openPrivateCaseStudy,
       currentPrivateProjectId
     );
+
+    if (!didNotify) {
+      didNotify = true;
+      onFirstTune?.();
+    }
 
     if (attempts < 30) {
       window.setTimeout(tune, 500);
@@ -1051,6 +1233,7 @@ function App() {
   const [privateDocuments, setPrivateDocuments] = React.useState({});
   const [privateIndexHtml, setPrivateIndexHtml] = React.useState('');
   const [isUnlocking, setIsUnlocking] = React.useState(false);
+  const [isProjectTransitioning, setIsProjectTransitioning] = React.useState(false);
   const [path, setPath] = React.useState(currentPath);
   const requestSequence = React.useRef(0);
   const privateProjectPage = isPrivateProjectPath(path);
@@ -1061,16 +1244,31 @@ function App() {
   const homePage = path === '/' || contactPage;
   const matchingPrivateDocument = privateCaseProject ? privateDocuments[privateCaseProject.id] : null;
 
+  const lockPrivateAccess = React.useCallback(() => {
+    requestSequence.current += 1;
+    setPassword('');
+    setError('');
+    setHasPrivateAccess(false);
+    setPrivateDocuments({});
+    setPrivateIndexHtml('');
+    setIsUnlocking(false);
+    setIsProjectTransitioning(false);
+  }, []);
+
   const navigateTo = React.useCallback((nextValue, options = {}) => {
     const nextPath = normalizeAppPath(nextValue);
     const currentBrowserPath = window.location.pathname.replace(/\/+$/, '') || '/';
+
+    if (!isPrivateProjectPath(nextPath)) {
+      lockPrivateAccess();
+    }
 
     if (currentBrowserPath !== nextPath) {
       window.history[options.replace ? 'replaceState' : 'pushState']({}, '', nextPath);
     }
 
     setPath(nextPath);
-  }, []);
+  }, [lockPrivateAccess]);
 
   React.useEffect(() => {
     const normalizedInitialPath = currentPath();
@@ -1079,9 +1277,21 @@ function App() {
       window.history.replaceState({}, '', normalizedInitialPath);
     }
 
-    const handlePopState = () => setPath(currentPath());
+    const handlePopState = () => {
+      const nextPath = currentPath();
+      if (isPrivateProjectPath(nextPath)) {
+        setIsProjectTransitioning(true);
+      } else {
+        lockPrivateAccess();
+      }
+      setPath(nextPath);
+    };
     const handleFrameNavigation = (event) => {
-      if (event.origin !== window.location.origin || event.data?.type !== 'portfolio:navigate') {
+      const isCurrentFrame = [...document.querySelectorAll('iframe')].some((frame) => {
+        return frame.contentWindow === event.source;
+      });
+      const isTrustedOrigin = event.origin === window.location.origin || event.origin === 'null';
+      if (!isCurrentFrame || !isTrustedOrigin || event.data?.type !== 'portfolio:navigate') {
         return;
       }
 
@@ -1097,7 +1307,7 @@ function App() {
       window.removeEventListener('popstate', handlePopState);
       window.removeEventListener('message', handleFrameNavigation);
     };
-  }, [navigateTo, path]);
+  }, [lockPrivateAccess, navigateTo, path]);
 
   async function requestPrivateCaseStudyHtml(projectId = PRIVATE_PROJECTS[0].id) {
     const result = await fetch('/api/private-project', {
@@ -1126,6 +1336,7 @@ function App() {
 
     const requestId = ++requestSequence.current;
     setIsUnlocking(true);
+    setIsProjectTransitioning(true);
     setError('');
 
     try {
@@ -1148,6 +1359,7 @@ function App() {
       setError('Unable to open project. Please enter the password again.');
       setHasPrivateAccess(false);
       setPrivateDocuments({});
+      setIsProjectTransitioning(false);
     } finally {
       if (requestId === requestSequence.current) {
         setIsUnlocking(false);
@@ -1158,6 +1370,7 @@ function App() {
   async function unlockPrivateProject(event) {
     event.preventDefault();
     setIsUnlocking(true);
+    setIsProjectTransitioning(true);
     setError('');
 
     try {
@@ -1184,10 +1397,50 @@ function App() {
       setError('');
     } catch (unlockError) {
       setError(unlockError.message === 'Incorrect password' ? 'Incorrect password' : 'Unable to unlock project. Please try again.');
+      setIsProjectTransitioning(false);
     } finally {
       setIsUnlocking(false);
     }
   }
+
+  const finishPrivateFrameTransition = React.useCallback((frame) => {
+    const frameDocument = frame.contentDocument;
+    const frameWindow = frameDocument?.defaultView;
+    if (!frameDocument || !frameWindow) {
+      setIsProjectTransitioning(false);
+      return;
+    }
+
+    const visibleImages = [...frameDocument.images].filter((image) => {
+      const bounds = image.getBoundingClientRect();
+      const styles = frameWindow.getComputedStyle(image);
+      return bounds.width > 0
+        && bounds.height > 0
+        && styles.display !== 'none'
+        && styles.visibility !== 'hidden';
+    });
+    const waitForImages = Promise.allSettled(visibleImages.map((image) => {
+      if (image.complete && image.naturalWidth > 0) {
+        return Promise.resolve();
+      }
+
+      if (typeof image.decode === 'function') {
+        return image.decode().catch(() => undefined);
+      }
+
+      return new Promise((resolve) => {
+        image.addEventListener('load', resolve, { once: true });
+        image.addEventListener('error', resolve, { once: true });
+      });
+    }));
+    const timeout = new Promise((resolve) => window.setTimeout(resolve, 1500));
+
+    Promise.race([waitForImages, timeout]).then(() => {
+      if (frame.isConnected) {
+        window.requestAnimationFrame(() => setIsProjectTransitioning(false));
+      }
+    });
+  }, []);
 
   return (
     <>
@@ -1199,7 +1452,8 @@ function App() {
           className="framer-frame"
           title="Framed by Harsh private project"
           srcDoc={matchingPrivateDocument.html}
-          onLoad={(event) => tuneFramerFrameWhenReady(event.currentTarget, true, false, false, false, false, openPrivateCaseStudy, privateCaseProject?.id)}
+          ref={(frame) => frame && tuneFramerFrameWhenReady(frame, true, false, false, false, false, openPrivateCaseStudy, privateCaseProject?.id, () => finishPrivateFrameTransition(frame))}
+          onLoad={(event) => tuneFramerFrameWhenReady(event.currentTarget, true, false, false, false, false, openPrivateCaseStudy, privateCaseProject?.id, () => finishPrivateFrameTransition(event.currentTarget))}
         />
       ) : privateProjectPage && hasPrivateAccess && privateIndexHtml ? (
         <iframe
@@ -1207,7 +1461,8 @@ function App() {
           className="framer-frame"
           title="Framed by Harsh private projects"
           srcDoc={privateIndexHtml}
-          onLoad={(event) => tuneFramerFrameWhenReady(event.currentTarget, false, false, false, false, true, openPrivateCaseStudy)}
+          ref={(frame) => frame && tuneFramerFrameWhenReady(frame, false, false, false, false, true, openPrivateCaseStudy, null, () => finishPrivateFrameTransition(frame))}
+          onLoad={(event) => tuneFramerFrameWhenReady(event.currentTarget, false, false, false, false, true, openPrivateCaseStudy, null, () => finishPrivateFrameTransition(event.currentTarget))}
         />
       ) : privateProjectPage && hasPrivateAccess ? (
         <div className="framer-frame framer-frame--locked-placeholder" aria-hidden="true" />
@@ -1220,6 +1475,12 @@ function App() {
           onLoad={(event) => tuneFramerFrameWhenReady(event.currentTarget, false, contactPage, homePage, path === '/')}
         />
       )}
+
+      {privateProjectPage && hasPrivateAccess && isProjectTransitioning ? (
+        <div className="private-transition" role="status" aria-label="Loading private project">
+          <span className="private-transition__bar" />
+        </div>
+      ) : null}
 
       {privateProjectLocked ? (
         <div className="private-gate" role="dialog" aria-modal="true" aria-labelledby="private-gate-title">

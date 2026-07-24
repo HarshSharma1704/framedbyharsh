@@ -1,8 +1,13 @@
 export function preparePrivateProjectHtml(html) {
-  return html.replace(
-    /<script\b[^>]*data-framer-bundle="main"[^>]*>[\s\S]*?<\/script>/gi,
-    ''
-  );
+  return html
+    .replace(
+      /<script\b[^>]*data-framer-bundle="main"[^>]*>[\s\S]*?<\/script>/gi,
+      ''
+    )
+    .replace(
+      /window\.top\.postMessage\(\{ type: 'portfolio:navigate', href \}, window\.location\.origin\);/g,
+      "window.top.postMessage({ type: 'portfolio:navigate', href }, '*');"
+    );
 }
 
 export function isValidPrivateProjectPassword(candidate, configuredPassword) {
