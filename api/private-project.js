@@ -1,10 +1,9 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { preparePrivateProjectHtml } from './private-html.js';
+import { isValidPrivateProjectPassword, preparePrivateProjectHtml } from './private-html.js';
 
 const PASSWORD = process.env.PRIVATE_PROJECT_PASSWORD || 'accinternal';
 const PROJECT_FILES = {
-  'private-index': path.join('public', 'pages', 'projects.html'),
   'digital-payments-settlement-platform': path.join('api', 'protected', 'private-digital-payments-settlement-platform.html'),
   'secure-network-access-management-platform': path.join('api', 'protected', 'private-secure-network-access-management-platform.html')
 };
@@ -24,7 +23,7 @@ export default async function handler(request, response) {
     }
   }
 
-  if (!body || body.password !== PASSWORD) {
+  if (!body || !isValidPrivateProjectPassword(body.password, PASSWORD)) {
     response.status(401).json({ error: 'Incorrect password' });
     return;
   }

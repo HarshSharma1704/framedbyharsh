@@ -2,10 +2,9 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { preparePrivateProjectHtml } from './api/private-html.js';
+import { isValidPrivateProjectPassword, preparePrivateProjectHtml } from './api/private-html.js';
 
 const projectFiles = {
-  'private-index': path.join('public', 'pages', 'projects.html'),
   'digital-payments-settlement-platform': path.join('api', 'protected', 'private-digital-payments-settlement-platform.html'),
   'secure-network-access-management-platform': path.join('api', 'protected', 'private-secure-network-access-management-platform.html')
 };
@@ -35,7 +34,7 @@ function privateProjectApi() {
           }
 
           const password = process.env.PRIVATE_PROJECT_PASSWORD || 'accinternal';
-          if (body.password !== password) {
+          if (!isValidPrivateProjectPassword(body.password, password)) {
             response.statusCode = 401;
             response.setHeader('Content-Type', 'application/json');
             response.end(JSON.stringify({ error: 'Incorrect password' }));

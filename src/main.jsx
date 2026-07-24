@@ -145,6 +145,18 @@ function resolveInternalRoute(rawHref, activePath = '/') {
   return normalizeAppPath(path);
 }
 
+async function fetchPrivateIndexHtml() {
+  const response = await fetch('/pages/projects.html', { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error('Unable to load private projects');
+  }
+
+  return (await response.text()).replace(
+    /<script\b[^>]*data-framer-bundle="main"[^>]*>[\s\S]*?<\/script>/gi,
+    ''
+  );
+}
+
 function alignHomeTalkText(frameDocument) {
   const introParagraph = [...frameDocument.querySelectorAll('p')].find((paragraph) => {
     return paragraph.textContent?.includes('Bridging design and technology');
@@ -1078,8 +1090,12 @@ function App() {
       body: JSON.stringify({ password, project: projectId })
     });
 
-    if (!result.ok) {
+    if (result.status === 401) {
       throw new Error('Incorrect password');
+    }
+
+    if (!result.ok) {
+      throw new Error('Unable to load private project');
     }
 
     return result.text();
@@ -1136,7 +1152,7 @@ function App() {
 
         const [html, indexHtml] = await Promise.all([
           requestPrivateCaseStudyHtml(privateCaseProject.id),
-          requestPrivateCaseStudyHtml('private-index')
+          fetchPrivateIndexHtml()
         ]);
         setPrivateDocuments((documents) => ({
           ...documents,
@@ -1144,7 +1160,8 @@ function App() {
         }));
         setPrivateIndexHtml(indexHtml);
       } else {
-        setPrivateIndexHtml(await requestPrivateCaseStudyHtml('private-index'));
+        await requestPrivateCaseStudyHtml(PRIVATE_PROJECTS[0].id);
+        setPrivateIndexHtml(await fetchPrivateIndexHtml());
       }
 
       setHasPrivateAccess(true);
